@@ -31,10 +31,11 @@ public class WhatsChat extends javax.swing.JFrame {
     static final int portNo = 6789;
     static volatile Map<String,String> usernameList = new HashMap();
     static volatile Map<String,String> groupList = new HashMap();
+    Map<String,String> joinedGroupList = new HashMap();
     //static volatile boolean onHold = false;
     MulticastSocket multicastSocket = null, commonSocket = null;
     InetAddress multicastGroup = null, commonGroup = null;
-    String username = "", joinedGroup = "";
+    String username = "";
     Thread commonThread = null;
     
     /**
@@ -63,15 +64,14 @@ public class WhatsChat extends javax.swing.JFrame {
                                     String action = msgArray[0], parameter = msgArray[1];
                                     if(action.equals("getUser") && !(username.isEmpty())){
                                         String sendUserMessage = "sendUser::"+username;
-                                        byte[] msgBuf = sendUserMessage.getBytes();
-                                        DatagramPacket dgpGetUser = new DatagramPacket(msgBuf, msgBuf.length, commonGroup, portNo);
-                                        commonSocket.send(dgpGetUser);
+                                        commonSocket.send(generateMessage(sendUserMessage));
                                     }
-                                    else if(action.equals("getGroup") && !(joinedGroup.isEmpty())){
-                                        String sendGroupMessage = "sendGroup::"+joinedGroup+"::"+groupList.get(joinedGroup);
-                                        byte[] msgBuf = sendGroupMessage.getBytes();
-                                        DatagramPacket dgpGetGroup = new DatagramPacket(msgBuf, msgBuf.length, commonGroup, portNo);
-                                        commonSocket.send(dgpGetGroup);
+                                    else if(action.equals("getGroup") && !(groupList.isEmpty())){
+                                        String sendGroupMessage="";
+                                        for(String group : groupList.keySet()){
+                                            sendGroupMessage = "sendGroup::"+group+"::"+groupList.get(group);
+                                            commonSocket.send(generateMessage(sendGroupMessage));
+                                        }
                                     }
                                     else if(action.equals("sendUser")){
                                         if(!(usernameList.containsKey(parameter))){
@@ -84,7 +84,12 @@ public class WhatsChat extends javax.swing.JFrame {
                                             String detail = msgArray[2];
                                             groupList.put(parameter,detail);
                                         }
-                                        updateGroupList();
+                                    }
+                                    else if(action.equals("inviteUser")){
+                                        if(parameter.equals(username)){
+                                            joinedGroupList.put(msgArray[2], msgArray[3]);
+                                            updateGroupList();
+                                        }
                                     }
                                     else if(action.equals("removeUser")){
                                         if(usernameList.containsKey(parameter)){
@@ -101,13 +106,9 @@ public class WhatsChat extends javax.swing.JFrame {
                     });
             commonThread.start();
             String getUserMessage = "getUser:: ";
-            byte[] msgBuf = getUserMessage.getBytes();
-            DatagramPacket dgpRequest = new DatagramPacket(msgBuf, msgBuf.length, commonGroup, portNo);
-            commonSocket.send(dgpRequest);
+            commonSocket.send(generateMessage(getUserMessage));
             String getGroupMessage = "getGroup:: ";
-            msgBuf = getGroupMessage.getBytes();
-            dgpRequest = new DatagramPacket(msgBuf, msgBuf.length, commonGroup, portNo);
-            commonSocket.send(dgpRequest);
+            commonSocket.send(generateMessage(getGroupMessage));
         }
         catch(IOException ex){
             ex.printStackTrace();
@@ -158,11 +159,6 @@ public class WhatsChat extends javax.swing.JFrame {
                 btnRegisterMouseClicked(evt);
             }
         });
-        btnRegister.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnRegisterActionPerformed(evt);
-            }
-        });
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Group Management"));
 
@@ -170,11 +166,6 @@ public class WhatsChat extends javax.swing.JFrame {
         btnCreate.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 btnCreateMouseClicked(evt);
-            }
-        });
-        btnCreate.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnCreateActionPerformed(evt);
             }
         });
 
@@ -387,14 +378,38 @@ public class WhatsChat extends javax.swing.JFrame {
     
     private void btnRegisterMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnRegisterMouseClicked
         // TODO add your handling code here:
+        String usernameInput = textRegister.getText();
+        if(usernameValid(usernameInput)){
+            labelRegisterError.setText("");
+            //TODO: Register User
+            if(!(usernameList.containsKey(usernameInput))){
+                try{
+                    username = usernameInput;
+                    String sendUserMessage = "sendUser::"+username;
+                    commonSocket.send(generateMessage(sendUserMessage));
+                }
+                catch(IOException ex){
+                    ex.printStackTrace();
+                }
+            }
+            else{
+                labelRegisterError.setText("Username exist!");  
+            }
+        }
+        else{
+            labelRegisterError.setText("Invalid Username !");   
+        }
     }//GEN-LAST:event_btnRegisterMouseClicked
 
     private void btnCreateMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnCreateMouseClicked
         // TODO add your handling code here:
         if(!(panelUser.getComponent(0).isVisible())){
             List<String> users = new ArrayList<String>(usernameList.keySet());
+            JCheckBox userCB;
             for(String user : users){
-                panelUserCheckbox.add(new JCheckBox(user));
+                userCB = new JCheckBox(user);
+                userCB.setName(user);
+                panelUserCheckbox.add(userCB);
             }
             panelUserCheckbox.setAlignmentY(JComponent.LEFT_ALIGNMENT);
             ((CardLayout) panelUser.getLayout()).show(panelUser, "CHECK");
@@ -402,33 +417,32 @@ public class WhatsChat extends javax.swing.JFrame {
         }
         else{
             String groupInput  = textGroup.getText();
-            int checkedCB = 0;
+            List<String> checkedUsers = new ArrayList<String>();
             for(Component userCB : panelUserCheckbox.getComponents()){
                 if(((JCheckBox)userCB).isSelected()){
-                    checkedCB++;
+                    checkedUsers.add(userCB.getName());
                 }
             }
             labelGroupError.setText("");
             if(groupInput.isEmpty()){
                 labelGroupError.setText(" Group name cannot be empty !");
             }
-            else if(checkedCB == 0){
+            else if(checkedUsers.isEmpty()){
                 labelGroupError.setText(" None of the users invited !");
             }
             else{
                 int ip = groupInput.hashCode();
-                System.out.println(ip);
-                //Limiting the first group of IP Address to 228 for usable Multicast address
-                String ipStr = String.format("230.1.%d.%d",         
-                           (ip & 0xff),    
-                           (ip >> 8 & 0xff));
+                //Limiting the first two group of IP Address to 230.1 for usable Multicast address
+                String ipStr = String.format("230.1.%d.%d",(ip & 0xff),(ip >> 8 & 0xff));
                 if(!groupList.containsKey(groupInput)){
                     try{
                         String createMessage = "sendGroup::"+groupInput+"::"+ipStr;
-                        byte[] buf = createMessage.getBytes();
-                        DatagramPacket dgpCreate = new DatagramPacket(buf, buf.length, commonGroup, portNo);
-                        commonSocket.send(dgpCreate);
-                        joinedGroup = groupInput;
+                        commonSocket.send(generateMessage(createMessage));
+                        for(String checkedUser : checkedUsers){
+                            String inviteMessage = "inviteUser::"+checkedUser+"::"+groupInput+"::"+ipStr;
+                            commonSocket.send(generateMessage(inviteMessage));
+                        }
+                        joinedGroupList.put(groupInput, ipStr);
                         groupList.put(groupInput, ipStr);
                     }
                     catch(IOException ex){
@@ -462,51 +476,18 @@ public class WhatsChat extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btnSendMouseClicked
 
-    private void btnRegisterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegisterActionPerformed
-        // TODO add your handling code here:
-        String usernameInput = textRegister.getText();
-        if(usernameValid(usernameInput)){
-            labelRegisterError.setText("");
-            //TODO: Register User
-            if(!(usernameList.containsKey(usernameInput))){
-                try{
-                    username = usernameInput;
-                    String sendUserMessage = "sendUser::"+username;
-                    byte[] msgBuf = sendUserMessage.getBytes();
-                    DatagramPacket dgpConnected = new DatagramPacket(msgBuf, msgBuf.length, commonGroup, portNo);
-                    commonSocket.send(dgpConnected);
-                }
-                catch(IOException ex){
-                    ex.printStackTrace();
-                }
-            }
-            else{
-                labelRegisterError.setText("Username exist!");  
-            }
-        }
-        else{
-            labelRegisterError.setText("Invalid Username !");   
-        }
-    }//GEN-LAST:event_btnRegisterActionPerformed
-
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
         // TODO add your handling code here:
         if(!username.isEmpty()){
             try{
                 String getUserMessage = "removeUser::"+username;
-                byte[] msgBuf = getUserMessage.getBytes();
-                DatagramPacket dgpConnected = new DatagramPacket(msgBuf, msgBuf.length, commonGroup, portNo);
-                commonSocket.send(dgpConnected);
+                commonSocket.send(generateMessage(getUserMessage));
             }
             catch(IOException ex){
                 ex.printStackTrace();
             }
         }
     }//GEN-LAST:event_formWindowClosing
-
-    private void btnCreateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCreateActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btnCreateActionPerformed
 
     /**
      * @param args the command line arguments
@@ -565,12 +546,18 @@ public class WhatsChat extends javax.swing.JFrame {
     }
     
     public void updateGroupList(){
-        List<String> groups = new ArrayList<String>(groupList.keySet());
+        List<String> groups = new ArrayList<String>(joinedGroupList.keySet());
         String groupNameList = "";
         for(String group : groups){
             groupNameList+=group+"\t"+groupList.get(group)+"\n";
         }
         listGroup.setText(groupNameList);
+    }
+    
+    public DatagramPacket generateMessage(String message){
+        byte[] buf = message.getBytes();
+        DatagramPacket dgp = new DatagramPacket(buf, buf.length, commonGroup, portNo);
+        return dgp;
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
