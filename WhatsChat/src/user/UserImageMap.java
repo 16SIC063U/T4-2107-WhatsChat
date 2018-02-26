@@ -10,6 +10,8 @@ import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
+import javax.swing.JList;
+
 public class UserImageMap implements Serializable{
 	String username;
 	File userImage;
@@ -91,3 +93,4 @@ public class UserImageMap implements Serializable{
 		return this.username.hashCode();
 	}
 }
+

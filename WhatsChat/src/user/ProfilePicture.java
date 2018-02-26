@@ -30,6 +30,7 @@ public class ProfilePicture extends JPanel  {
 	private String username;
 	private final static String IMAGE_DIRECTORY = "images";
 	private BufferedImage image;
+
 	/**
 	 * Add profile picture to path
 	 * @return 
