@@ -46,6 +46,7 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 
 import user.ProfilePicture;
 import user.UserImageMap;
+import user.manageGroup;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -58,11 +59,12 @@ import javax.swing.SwingConstants;
 public class WhatsChat extends javax.swing.JFrame {
 	static volatile HashMap createdGroup = new HashMap();
 	static final int portNo = 6789;
-	static volatile Map<String, String> usernameList = new HashMap();
+	static volatile List<String> usernameList = new ArrayList();
 	static volatile Map<String, String> groupList = new HashMap();
 	static volatile boolean messageFlag = false;
 	Map<String, String> joinedGroupList = new HashMap();
 	Map<String, String> joinedGroupChats = new HashMap();
+        Map<String, List<String>> joinedGroupMembers = new HashMap();
 	// static volatile boolean onHold = false;
 	MulticastSocket multicastSocket = null, commonSocket = null;
 	InetAddress multicastGroup = null, commonGroup = null;
@@ -76,102 +78,152 @@ public class WhatsChat extends javax.swing.JFrame {
 	 * Creates new form WhatsChat
 	 */
 	public WhatsChat() {
-		initComponents();
-		postInitComponent();
-		try {
-			commonGroup = InetAddress.getByName("230.1.1.1");
-			commonSocket = new MulticastSocket(portNo);
-			commonSocket.joinGroup(commonGroup);
-			commonThread = new Thread(new Runnable() {
-				@Override
-				public void run() {
-					byte rcvBuf[] = new byte[1000];
-					DatagramPacket dgpReceived = new DatagramPacket(rcvBuf, rcvBuf.length);
-					try {
-						while (true) {
-							commonSocket.receive(dgpReceived);
-							byte[] receivedData = dgpReceived.getData();
-							int length = dgpReceived.getLength();
-							String msg = new String(receivedData, 0, length);
-							// TODO: Listen to broadcast
-							String[] msgArray = msg.split("::");
-							String action = msgArray[0], parameter = msgArray[1];
-							if (action.equals("getUser") && !(username.isEmpty())) {
-								String sendUserMessage = "sendUser::" + username;
-								commonSocket.send(generateMessage(sendUserMessage, commonGroup));
-							} 
-							else if (action.equals("getUserImage") && !(userImageMapList.isEmpty())) {
-								for (UserImageMap userImageMap : userImageMapList) {
-									String sendUserImageMessage = "sendUserImage::" + userImageMap.getByteMessage();
-									commonSocket.send(generateMessage(sendUserImageMessage, commonGroup));
-								}
-							}
-							else if (action.equals("getGroup") && !(groupList.isEmpty())) {
-								String sendGroupMessage = "";
-								for (String group : groupList.keySet()) {
-									sendGroupMessage = "sendGroup::" + group + "::" + groupList.get(group);
-									commonSocket.send(generateMessage(sendGroupMessage, commonGroup));
-								}
-							} else if (action.equals("sendUser")) {
-								if (!(usernameList.containsKey(parameter))) {
-									usernameList.put(parameter, "");
-								}
-								updateUserList();
-							}else if (action.equals("sendUserImage")) {
-								System.out.println("Send user image");
-								UserImageMap map = new UserImageMap(parameter.getBytes());
-								
-					
-								boolean isInList = false;
-								for(UserImageMap userImageMap: userImageMapList){
-									if(userImageMap.getUsername().equals(map.getUsername())){
-										isInList = true;
-									}
-								}
-								//Add if not in list
-								if(!isInList){
-									System.out.println("not in list");
-									userImageMapList.add(map);
-								}
+            initComponents();
+            postInitComponent();
+            try {
+                commonGroup = InetAddress.getByName("230.1.1.1");
+                commonSocket = new MulticastSocket(portNo);
+                commonSocket.joinGroup(commonGroup);
+                commonThread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        byte rcvBuf[] = new byte[1000];
+                        DatagramPacket dgpReceived = new DatagramPacket(rcvBuf, rcvBuf.length);
+                        try {
+                            while (true) {
+                                commonSocket.receive(dgpReceived);
+                                byte[] receivedData = dgpReceived.getData();
+                                int length = dgpReceived.getLength();
+                                String msg = new String(receivedData, 0, length);
+                                // TODO: Listen to broadcast
+                                String[] msgArray = msg.split("::");
+                                String action = msgArray[0], parameter = msgArray[1];
+                                if (action.equals("getUser") && !(username.isEmpty())) {
+                                    String sendUserMessage = "sendUser::" + username;
+                                    commonSocket.send(generateMessage(sendUserMessage, commonGroup));
+                                } 
+                                else if (action.equals("getUserImage") && !(userImageMapList.isEmpty())) {
+                                    for (UserImageMap userImageMap : userImageMapList) {
+                                        String sendUserImageMessage = "sendUserImage::" + userImageMap.getByteMessage();
+                                        commonSocket.send(generateMessage(sendUserImageMessage, commonGroup));
+                                    }
+                                }
+                                else if (action.equals("getGroup") && !(groupList.isEmpty())) {
+                                    String sendGroupMessage = "";
+                                    for (String group : groupList.keySet()) {
+                                        sendGroupMessage = "sendGroup::" + group + "::" + groupList.get(group);
+                                        commonSocket.send(generateMessage(sendGroupMessage, commonGroup));
+                                    }
+                                } else if (action.equals("sendUser")) {
+                                    if (!(usernameList.contains(parameter))) {
+                                        usernameList.add(parameter);
+                                    }
+                                    updateUserList();
+                                }else if (action.equals("sendUserImage")) {
+                                    System.out.println("Send user image");
+                                    UserImageMap map = new UserImageMap(parameter.getBytes());
 
-								for(UserImageMap u: userImageMapList){
-									System.out.println("UN: " + u.getUsername());
-								}
-							} 
-							else if (action.equals("sendGroup")) {
-								if (!(groupList.containsKey(parameter))) {
-									String detail = msgArray[2];
-									groupList.put(parameter, detail);
-								}
-							} else if (action.equals("inviteUser")) {
-								if (parameter.equals(username)) {
-									joinedGroupList.put(msgArray[2], msgArray[3]);
-									joinGroup(msgArray[3]);
-									updateGroupList();
-									updateConversation();
-								}
-							} else if (action.equals("removeUser")) {
-								if (usernameList.containsKey(parameter)) {
-									usernameList.remove(parameter);
-								}
-								updateUserList();
-							}
-						}
-					} catch (IOException ex) {
-							ex.printStackTrace();
-					}
-				}
-			});
-			commonThread.start();
-			String getUserMessage = "getUser:: ";
-			commonSocket.send(generateMessage(getUserMessage, commonGroup));
-			String getGroupMessage = "getGroup:: ";
-			commonSocket.send(generateMessage(getGroupMessage, commonGroup));
-			String getUserImageMessage = "getUserImage:: ";
-			commonSocket.send(generateMessage(getUserMessage, commonGroup));
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		}
+                                    boolean isInList = false;
+                                    for(UserImageMap userImageMap: userImageMapList){
+                                        if(userImageMap.getUsername().equals(map.getUsername())){
+                                            isInList = true;
+                                        }
+                                    }
+                                    //Add if not in list
+                                    if(!isInList){
+                                        System.out.println("not in list");
+                                        userImageMapList.add(map);
+                                    }
+                                    for(UserImageMap u: userImageMapList){
+                                        System.out.println("UN: " + u.getUsername());
+                                    }
+                                } 
+                                else if (action.equals("sendGroup")) {
+                                    if (!(groupList.containsKey(parameter))) {
+                                        String detail = msgArray[2];
+                                        groupList.put(parameter, detail);
+                                    }
+                                } else if (action.equals("inviteUser")) {
+                                    if (parameter.equals(username)) {
+                                        joinedGroupList.put(msgArray[2], msgArray[3]);
+                                        joinedGroupMembers.put(msgArray[2], new ArrayList<>());
+                                        updateGroupMembers(msgArray[2]);
+                                        joinGroup(msgArray[3]);
+                                        updateGroupList();
+                                        updateConversation();
+                                    }
+                                } else if (action.equals("removeUser")) {
+                                    if (usernameList.contains(parameter)) {
+                                        usernameList.remove(parameter);
+                                    }
+                                    updateUserList();
+                                } else if (action.equals("getMembers")){
+                                    if(joinedGroupList.containsKey(parameter)){
+                                        String sendMemberMessage = "sendMember::"+parameter+"::"+username;
+                                        commonSocket.send(generateMessage(sendMemberMessage, commonGroup));
+                                    }
+                                } else if (action.equals("sendMember")){
+                                    if(joinedGroupList.containsKey(parameter)){
+                                        List<String> members = joinedGroupMembers.get(parameter);
+                                        if(!members.contains(msgArray[2])){
+                                            members.add(msgArray[2]);
+                                            joinedGroupMembers.put(parameter, members);
+                                        }
+                                    }
+                                } else if(action.equals("addMember")){
+                                    int ip = msgArray[2].hashCode();
+                                    String ipStr = String.format("230.1.%d.%d", (ip & 0xff), (ip >> 8 & 0xff));
+                                    if(joinedGroupChats.containsKey(ipStr)){
+                                        System.out.println("addMember "+ipStr);
+                                        String sendChats = "sendChats::"+msgArray[2]+"::"+joinedGroupChats.get(ipStr);
+                                        commonSocket.send(generateMessage(sendChats,commonGroup));
+                                    }
+                                    if(username.equals(parameter)){
+                                        joinedGroupList.put(msgArray[2], ipStr);
+                                        joinedGroupMembers.put(msgArray[2], new ArrayList<>());
+                                        updateGroupMembers(msgArray[2]);
+                                        joinGroup(ipStr);
+                                        updateGroupList();
+                                        updateConversation();
+                                    }
+                                } else if(action.equals("removeMember")){
+                                    if(username.equals(parameter)){
+                                        joinedGroupList.remove(msgArray[2]);
+                                        joinedGroupMembers.remove(msgArray[2]);
+                                        updateGroupList();
+                                        updateConversation();
+                                    }
+                                    if(joinedGroupMembers.containsKey(msgArray[2])){
+                                        List<String> members = joinedGroupMembers.get(msgArray[2]);
+                                        members.remove(parameter);
+                                        joinedGroupMembers.put(msgArray[2],members);
+                                        updateGroupList();
+                                        updateConversation();
+                                    }
+                                } else if(action.equals("sendChats")){
+                                    int ip = parameter.hashCode();
+                                    String ipStr = String.format("230.1.%d.%d", (ip & 0xff), (ip >> 8 & 0xff));
+                                    if(joinedGroupList.containsKey(parameter)){
+                                        joinedGroupChats.put(ipStr, msgArray[2]);
+                                        updateConversation();
+                                    }
+                                }
+                            }
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                });
+                commonThread.start();
+                String getUserMessage = "getUser:: ";
+                commonSocket.send(generateMessage(getUserMessage, commonGroup));
+                String getGroupMessage = "getGroup:: ";
+                commonSocket.send(generateMessage(getGroupMessage, commonGroup));
+                String getUserImageMessage = "getUserImage:: ";
+                commonSocket.send(generateMessage(getUserMessage, commonGroup));
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
 	}
 
 	/**
@@ -446,164 +498,177 @@ public class WhatsChat extends javax.swing.JFrame {
 	}// </editor-fold>//GEN-END:initComponents
 
 	private void postInitComponent() {
-		listUser = new JTextArea();
-		scrollUser = new JScrollPane();
-		panelUserCheckbox = new JPanel();
-		panelUserCheckbox.setName("CHECK");
+            listUser = new JTextArea();
+            scrollUser = new JScrollPane();
+            panelUserCheckbox = new JPanel();
+            panelUserCheckbox.setName("CHECK");
 
-		buttonGroup = new ButtonGroup();
-		scrollGroup = new JScrollPane();
-		groupPane = new JPanel();
+            buttonGroup = new ButtonGroup();
+            scrollGroup = new JScrollPane();
+            groupPane = new JPanel();
 
-		groupPane.setLayout(new BoxLayout(groupPane, BoxLayout.Y_AXIS));
-		groupPane.setBounds(10, 20, 200, 200);
-		scrollGroup.setViewportView(groupPane);
-		scrollGroup.setSize(190, 200);
+            groupPane.setLayout(new BoxLayout(groupPane, BoxLayout.Y_AXIS));
+            groupPane.setBounds(10, 20, 200, 200);
+            scrollGroup.setViewportView(groupPane);
+            scrollGroup.setSize(190, 200);
 
-		listUser.setEditable(false);
-		listUser.setColumns(10);
-		listUser.setRows(5);
-		scrollUser.setViewportView(listUser);
-		scrollUser.setName("LIST");
+            listUser.setEditable(false);
+            listUser.setColumns(10);
+            listUser.setRows(5);
+            scrollUser.setViewportView(listUser);
+            scrollUser.setName("LIST");
 
-		panelUser.setLayout(new CardLayout());
-		panelUser.add(panelUserCheckbox, "CHECK");
-		panelUser.add(scrollUser, "LIST");
-		panelUser.setPreferredSize(new Dimension(190, 200));
-		((CardLayout) panelUser.getLayout()).show(panelUser, "LIST");
+            panelUser.setLayout(new CardLayout());
+            panelUser.add(panelUserCheckbox, "CHECK");
+            panelUser.add(scrollUser, "LIST");
+            panelUser.setPreferredSize(new Dimension(190, 200));
+            ((CardLayout) panelUser.getLayout()).show(panelUser, "LIST");
 
-		btnCancel.setVisible(false);
-		btnCancel.setEnabled(false);
+            btnCancel.setVisible(false);
+            btnCancel.setEnabled(false);
 	}
 
 	private void btnRegisterMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_btnRegisterMouseClicked
-		// TODO add your handling code here:
-		String usernameInput = textRegister.getText();
-		if (usernameValid(usernameInput)) {
-			labelRegisterError.setText("");
-			// TODO: Register User
-			if (!(usernameList.containsKey(usernameInput))) {
-				try {
-					username = usernameInput;
-					String sendUserMessage = "sendUser::" + username;
-					commonSocket.send(generateMessage(sendUserMessage, commonGroup));
-					btnAddPicture.setVisible(true);
-				} catch (IOException ex) {
-					ex.printStackTrace();
-				}
-			} else {
-				labelRegisterError.setText("Username exist!");
-			}
-		} else {
-			labelRegisterError.setText("Invalid Username !");
-		}
+            // TODO add your handling code here:
+            String usernameInput = textRegister.getText();
+            if (usernameValid(usernameInput)) {
+                labelRegisterError.setText("");
+                // TODO: Register User
+                if (!(usernameList.contains(usernameInput))) {
+                    try {
+                        username = usernameInput;
+                        String sendUserMessage = "sendUser::" + username;
+                        commonSocket.send(generateMessage(sendUserMessage, commonGroup));
+                        btnAddPicture.setVisible(true);
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                } else {
+                    labelRegisterError.setText("Username exist!");
+                }
+            } else {
+                labelRegisterError.setText("Invalid Username !");
+            }
 	}// GEN-LAST:event_btnRegisterMouseClicked
 
 	private void btnCreateMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_btnCreateMouseClicked
-		// TODO add your handling code here:
-		if (!(panelUser.getComponent(0).isVisible())) {
-			List<String> users = new ArrayList<String>(usernameList.keySet());
-			JCheckBox userCB;
-			for (String user : users) {
-				userCB = new JCheckBox(user);
-				userCB.setName(user);
-				panelUserCheckbox.add(userCB);
-			}
-			panelUserCheckbox.setAlignmentY(JComponent.LEFT_ALIGNMENT);
-			((CardLayout) panelUser.getLayout()).show(panelUser, "CHECK");
-			btnCreate.setText("Save");
-			btnCancel.setVisible(true);
-			btnCancel.setEnabled(true);
-		} else {
-			String groupInput = textGroup.getText();
-			List<String> checkedUsers = new ArrayList<String>();
-			for (Component userCB : panelUserCheckbox.getComponents()) {
-				if (((JCheckBox) userCB).isSelected()) {
-					checkedUsers.add(userCB.getName());
-				}
-			}
-			labelGroupError.setText("");
-			if (groupInput.isEmpty()) {
-				labelGroupError.setText(" Group name cannot be empty !");
-			} else if (checkedUsers.isEmpty()) {
-				labelGroupError.setText(" None of the users invited !");
-			} else {
-				int ip = groupInput.hashCode();
-				// Limiting the first two group of IP Address to 230.1 for
-				// usable Multicast address
-				String ipStr = String.format("230.1.%d.%d", (ip & 0xff), (ip >> 8 & 0xff));
-				if (!groupList.containsKey(groupInput)) {
-					try {
-						String createMessage = "sendGroup::" + groupInput + "::" + ipStr;
-						commonSocket.send(generateMessage(createMessage, commonGroup));
-						joinedGroupList.put(groupInput, ipStr);
-						groupList.put(groupInput, ipStr);
-						activeGroup = groupInput;
-						for (String checkedUser : checkedUsers) {
-							String inviteMessage = "inviteUser::" + checkedUser + "::" + groupInput + "::" + ipStr;
-							commonSocket.send(generateMessage(inviteMessage, commonGroup));
-						}
-					} catch (IOException ex) {
-						ex.printStackTrace();
-					}
-				} else {
-					labelGroupError.setText(" Group already exist !");
-				}
-			}
-		}
+            // TODO add your handling code here:
+            if (!(panelUser.getComponent(0).isVisible())) {
+                JCheckBox userCB;
+                for (String user : usernameList) {
+                        userCB = new JCheckBox(user);
+                        userCB.setName(user);
+                        panelUserCheckbox.add(userCB);
+                }
+                panelUserCheckbox.setAlignmentY(JComponent.LEFT_ALIGNMENT);
+                ((CardLayout) panelUser.getLayout()).show(panelUser, "CHECK");
+                btnCreate.setText("Save");
+                btnCancel.setVisible(true);
+                btnCancel.setEnabled(true);
+            } else {
+                String groupInput = textGroup.getText();
+                List<String> checkedUsers = new ArrayList<String>();
+                for (Component userCB : panelUserCheckbox.getComponents()) {
+                    if (((JCheckBox) userCB).isSelected()) {
+                            checkedUsers.add(userCB.getName());
+                    }
+                }
+                labelGroupError.setText("");
+                if (groupInput.isEmpty()) {
+                    labelGroupError.setText(" Group name cannot be empty !");
+                } else if (checkedUsers.isEmpty()) {
+                    labelGroupError.setText(" None of the users invited !");
+                } else {
+                    int ip = groupInput.hashCode();
+                    // Limiting the first two group of IP Address to 230.1 for
+                    // usable Multicast address
+                    String ipStr = String.format("230.1.%d.%d", (ip & 0xff), (ip >> 8 & 0xff));
+                    if (!groupList.containsKey(groupInput)) {
+                        try {
+                            String createMessage = "sendGroup::" + groupInput + "::" + ipStr;
+                            commonSocket.send(generateMessage(createMessage, commonGroup));
+                            joinedGroupList.put(groupInput, ipStr);
+                            groupList.put(groupInput, ipStr);
+                            activeGroup = groupInput;
+                            for (String checkedUser : checkedUsers) {
+                                String inviteMessage = "inviteUser::" + checkedUser + "::" + groupInput + "::" + ipStr;
+                                commonSocket.send(generateMessage(inviteMessage, commonGroup));
+                            }
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
+                    } else {
+                            labelGroupError.setText(" Group already exist !");
+                    }
+                }
+            }
 	}// GEN-LAST:event_btnCreateMouseClicked
 
 	private void btnEditMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_btnEditMouseClicked
 		// TODO add your handling code here:
+                String groupInput = textGroup.getText();
+                if (groupInput != null && joinedGroupList.containsKey(groupInput)) {
+                    manageGroup newFrame = new manageGroup();
+                    newFrame.setGroupName(textGroup.getText());
+                    newFrame.setUsers(usernameList,joinedGroupMembers.get(groupInput));
+                    newFrame.setVisible(true);
+                    //TODO: set the list
+		}
+                else if(textGroup.getText() == null || textGroup.getText().isEmpty()){
+                    labelGroupError.setText(" Group name to be edited cannot be empty !");
+                }
+                else if(!joinedGroupList.containsKey(textGroup.getText())){
+                    labelGroupError.setText(" Not authorised to edit the group !");
+                }
 	}// GEN-LAST:event_btnEditMouseClicked
 
 	private void btnDeleteMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_btnDeleteMouseClicked
 		// TODO add your handling code here:
+                System.out.println(joinedGroupChats.toString());
 	}// GEN-LAST:event_btnDeleteMouseClicked
 
 	private void btnSendMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_btnSendMouseClicked
-		// TODO add your handling code here:
-		String messageInput = textMessage.getText();
-		if (messageInput != null && !(messageInput.isEmpty())) {
-			labelMessageError.setText("");
-			// TODO: Send Message
-			String message = username + " : " + messageInput;
-			if(activeGroup != ""){
-                            try {
-                                multicastSocket.send(generateMessage(message, getActiveInet()));
-                            } catch (IOException ex) {
-                                ex.printStackTrace();
-                            }
-                            textMessage.setText("");
-                        }
-                        else{
-                            labelMessageError.setText(" No active group to send message !");
-                        }
-			
-		} else {
-			labelMessageError.setText(" Cannot send empty message !");
-		}
+            // TODO add your handling code here:
+            String messageInput = textMessage.getText();
+            if (messageInput != null && !(messageInput.isEmpty())) {
+                labelMessageError.setText("");
+                // TODO: Send Message
+                String message = username + " : " + messageInput;
+                if(activeGroup != ""){
+                    try {
+                        multicastSocket.send(generateMessage(message, getActiveInet()));
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                    textMessage.setText("");
+                }
+                else{
+                    labelMessageError.setText(" No active group to send message !");
+                }
+            } else {
+                labelMessageError.setText(" Cannot send empty message !");
+            }
 	}// GEN-LAST:event_btnSendMouseClicked
 
 	private void formWindowClosing(java.awt.event.WindowEvent evt) {// GEN-FIRST:event_formWindowClosing
-		// TODO add your handling code here:
-		if (!username.isEmpty()) {
-			try {
-				String getUserMessage = "removeUser::" + username;
-				commonSocket.send(generateMessage(getUserMessage, commonGroup));
-			} catch (IOException ex) {
-				ex.printStackTrace();
-			}
-		}
+            // TODO add your handling code here:
+            if (!username.isEmpty()) {
+                try {
+                    String getUserMessage = "removeUser::" + username;
+                    commonSocket.send(generateMessage(getUserMessage, commonGroup));
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
 	}// GEN-LAST:event_formWindowClosing
 
 	private void btnCancelMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_btnCancelMouseClicked
-		// TODO add your handling code here:
-		((CardLayout) panelUser.getLayout()).show(panelUser, "LIST");
-		panelUserCheckbox.removeAll();
-		btnCreate.setText("Create");
-		btnCancel.setVisible(false);
-		btnCancel.setEnabled(false);
+            // TODO add your handling code here:
+            ((CardLayout) panelUser.getLayout()).show(panelUser, "LIST");
+            panelUserCheckbox.removeAll();
+            btnCreate.setText("Create");
+            btnCancel.setVisible(false);
+            btnCancel.setEnabled(false);
 	}// GEN-LAST:event_btnCancelMouseClicked
 
 	/**
@@ -611,146 +676,155 @@ public class WhatsChat extends javax.swing.JFrame {
 	 *            the command line arguments
 	 */
 	public static void main(String args[]) {
-		/* Set the Nimbus look and feel */
-		// <editor-fold defaultstate="collapsed" desc=" Look and feel setting
-		// code (optional) ">
-		/*
-		 * If Nimbus (introduced in Java SE 6) is not available, stay with the
-		 * default look and feel. For details see
-		 * http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.
-		 * html
-		 */
-		try {
-			for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-				if ("Nimbus".equals(info.getName())) {
-					javax.swing.UIManager.setLookAndFeel(info.getClassName());
-					break;
-				}
-			}
-		} catch (ClassNotFoundException ex) {
-			java.util.logging.Logger.getLogger(WhatsChat.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-		} catch (InstantiationException ex) {
-			java.util.logging.Logger.getLogger(WhatsChat.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-		} catch (IllegalAccessException ex) {
-			java.util.logging.Logger.getLogger(WhatsChat.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-		} catch (javax.swing.UnsupportedLookAndFeelException ex) {
-			java.util.logging.Logger.getLogger(WhatsChat.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-		}
-		// </editor-fold>
+            /* Set the Nimbus look and feel */
+            // <editor-fold defaultstate="collapsed" desc=" Look and feel setting
+            // code (optional) ">
+            /*
+             * If Nimbus (introduced in Java SE 6) is not available, stay with the
+             * default look and feel. For details see
+             * http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.
+             * html
+             */
+            try {
+                    for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                            if ("Nimbus".equals(info.getName())) {
+                                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                                    break;
+                            }
+                    }
+            } catch (ClassNotFoundException ex) {
+                    java.util.logging.Logger.getLogger(WhatsChat.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            } catch (InstantiationException ex) {
+                    java.util.logging.Logger.getLogger(WhatsChat.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            } catch (IllegalAccessException ex) {
+                    java.util.logging.Logger.getLogger(WhatsChat.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+                    java.util.logging.Logger.getLogger(WhatsChat.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            }
+            // </editor-fold>
 
-		/* Create and display the form */
-		java.awt.EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				new WhatsChat().setVisible(true);
-			}
-		});
+            /* Create and display the form */
+            java.awt.EventQueue.invokeLater(new Runnable() {
+                public void run() {
+                    new WhatsChat().setVisible(true);
+                }
+            });
 	}
 
 	public boolean usernameValid(String username) {
-		if (username == null || username.isEmpty() || username.length() > 8) {
-			return false;
-		} else if (username.contains(" ") || username.matches("^\\d.+")) {
-			return false;
-		} else {
-			return true;
-		}
+            if (username == null || username.isEmpty() || username.length() > 8) {
+                return false;
+            } else if (username.contains(" ") || username.matches("^\\d.+")) {
+                return false;
+            } else {
+                return true;
+            }
 	}
 
 	public void updateUserList() {
-		List<String> users = new ArrayList<String>(usernameList.keySet());
-		String userList = "";
-		for (String user : users) {
-			userList += user + "\n";
-		}
-		listUser.setText(userList);
+            String userList = "";
+            for (String user : usernameList) {
+                userList += user + "\n";
+            }
+            listUser.setText(userList);
 	}
 
 	public void updateGroupList() {
-		List<String> groups = new ArrayList<String>(joinedGroupList.keySet());
-		String groupNameList = "";
-		JRadioButton button;
-		groupPane.removeAll();
-		for (String group : groups) {
-			groupNameList = group + " : " + groupList.get(group);
-			button = new JRadioButton(groupNameList);
-			button.setName(group);
-			if (activeGroup.equals(group)) {
-				System.out.println("hi");
-				button.setSelected(true);
-			}
-			button.addItemListener(new ItemListener() {
-				@Override
-				public void itemStateChanged(ItemEvent event) {
-					if (event.getStateChange() == ItemEvent.SELECTED) {
-						activeGroup = ((JRadioButton) event.getItem()).getName();
-						updateConversation();
-					}
-				}
-			});
-			button.setVisible(true);
-			buttonGroup.add(button);
-			groupPane.add(button);
-		}
-		panelGroup.add(scrollGroup);
-		panelGroup.repaint();
-		panelGroup.revalidate();
+            List<String> groups = new ArrayList<String>(joinedGroupList.keySet());
+            String groupNameList = "";
+            JRadioButton button;
+            groupPane.removeAll();
+            for (String group : groups) {
+                groupNameList = group + " : " + groupList.get(group);
+                button = new JRadioButton(groupNameList);
+                button.setName(group);
+                if (activeGroup.equals(group)) {
+                    button.setSelected(true);
+                }
+                button.addItemListener(new ItemListener() {
+                    @Override
+                    public void itemStateChanged(ItemEvent event) {
+                        if (event.getStateChange() == ItemEvent.SELECTED) {
+                            activeGroup = ((JRadioButton) event.getItem()).getName();
+                            updateConversation();
+                        }
+                    }
+                });
+                button.setVisible(true);
+                buttonGroup.add(button);
+                groupPane.add(button);
+            }
+            panelGroup.add(scrollGroup);
+            panelGroup.repaint();
+            panelGroup.revalidate();
 	}
 
 	public DatagramPacket generateMessage(String message, InetAddress group) {
-		byte[] buf = message.getBytes();
-		DatagramPacket dgp = new DatagramPacket(buf, buf.length, group, portNo);
-		return dgp;
+            byte[] buf = message.getBytes();
+            DatagramPacket dgp = new DatagramPacket(buf, buf.length, group, portNo);
+            return dgp;
 	}
 	
 	public InetAddress getActiveInet() {
-		try {
-			return InetAddress.getByName(joinedGroupList.get(activeGroup));
-		} catch (UnknownHostException ex) {
-			ex.printStackTrace();
-		}
-		return null;
+            try {
+                return InetAddress.getByName(joinedGroupList.get(activeGroup));
+            } catch (UnknownHostException ex) {
+                ex.printStackTrace();
+            }
+            return null;
 	}
 
 	public void updateConversation() {
-		listConversation.setText(joinedGroupChats.get(joinedGroupList.get(activeGroup)));
-		listConversation.repaint();
+            listConversation.setText(joinedGroupChats.get(joinedGroupList.get(activeGroup)));
+            listConversation.repaint();
 	}
+        
+        public void updateGroupMembers(String groupInput){
+            String getMembersMessage = "getMembers::" + groupInput;
+            try{
+                commonSocket.send(generateMessage(getMembersMessage, commonGroup));
+            }
+            catch(IOException ex){
+                ex.printStackTrace();
+            }
+        }
 
 	public void joinGroup(String ipStr) {
-		try {
-			multicastGroup = InetAddress.getByName(ipStr);
-			multicastSocket = new MulticastSocket(portNo);
-			multicastSocket.joinGroup(multicastGroup);
-			// Create a new thread to keep listening for packets from the group
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					byte buf1[] = new byte[1000];
-					DatagramPacket dgpReceived = new DatagramPacket(buf1, buf1.length);
-					while (true) {
-						try {
-							multicastSocket.receive(dgpReceived);
-							byte[] receivedData = dgpReceived.getData();
-							int length = dgpReceived.getLength();
-							String msg = new String(receivedData, 0, length);
-							if (joinedGroupChats.get(ipStr) != null) {
-								String previousChats = joinedGroupChats.get(ipStr);
-								joinedGroupChats.put(ipStr, previousChats + "\n" + msg);
-							} else {
-								joinedGroupChats.put(ipStr, msg);
-							}
-							updateConversation();
-						} catch (IOException ex) {
-							ex.printStackTrace();
-						}
-					}
-				}
-			}).start();
-			String message = username + " joined " + ipStr;
-			multicastSocket.send(generateMessage(message, multicastGroup));
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		}
+            try {
+                multicastGroup = InetAddress.getByName(ipStr);
+                multicastSocket = new MulticastSocket(portNo);
+                multicastSocket.joinGroup(multicastGroup);
+                // Create a new thread to keep listening for packets from the group
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        byte buf1[] = new byte[1000];
+                        DatagramPacket dgpReceived = new DatagramPacket(buf1, buf1.length);
+                        while (true) {
+                            try {
+                                multicastSocket.receive(dgpReceived);
+                                byte[] receivedData = dgpReceived.getData();
+                                int length = dgpReceived.getLength();
+                                String msg = new String(receivedData, 0, length);
+                                if (joinedGroupChats.get(ipStr) != null) {
+                                    String previousChats = joinedGroupChats.get(ipStr);
+                                    joinedGroupChats.put(ipStr, previousChats + "\n" + msg);
+                                } else {
+                                    System.out.println(username+" newchat");
+                                    joinedGroupChats.put(ipStr, msg);
+                                }
+                                updateConversation();
+                            } catch (IOException ex) {
+                                ex.printStackTrace();
+                            }
+                        }
+                    }
+                }).start();
+                String message = username + " joined " + ipStr;
+                multicastSocket.send(generateMessage(message, multicastGroup));
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
 	}
 
 	// Variables declaration - do not modify//GEN-BEGIN:variables
