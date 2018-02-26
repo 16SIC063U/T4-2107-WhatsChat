@@ -568,12 +568,18 @@ public class WhatsChat extends javax.swing.JFrame {
 			labelMessageError.setText("");
 			// TODO: Send Message
 			String message = username + " : " + messageInput;
-			try {
-				multicastSocket.send(generateMessage(message, getActiveInet()));
-			} catch (IOException ex) {
-				ex.printStackTrace();
-			}
-			textMessage.setText("");
+			if(activeGroup != ""){
+                            try {
+                                multicastSocket.send(generateMessage(message, getActiveInet()));
+                            } catch (IOException ex) {
+                                ex.printStackTrace();
+                            }
+                            textMessage.setText("");
+                        }
+                        else{
+                            labelMessageError.setText(" No active group to send message !");
+                        }
+			
 		} else {
 			labelMessageError.setText(" Cannot send empty message !");
 		}
