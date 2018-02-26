@@ -204,7 +204,17 @@ public class WhatsChat extends javax.swing.JFrame {
                                     int ip = parameter.hashCode();
                                     String ipStr = String.format("230.1.%d.%d", (ip & 0xff), (ip >> 8 & 0xff));
                                     if(joinedGroupList.containsKey(parameter)){
-                                        joinedGroupChats.put(ipStr, msgArray[2]);
+                                        String[] chatArray = msgArray[2].split("\n");
+                                        if(chatArray.length > 10){
+                                            String message = "";
+                                            for(int i=chatArray.length-1; i>chatArray.length-11; i--){
+                                                message = chatArray[i]+"\n"+message;
+                                            }
+                                            joinedGroupChats.put(ipStr, message); 
+                                        }
+                                        else{
+                                           joinedGroupChats.put(ipStr, msgArray[2]); 
+                                        }
                                         updateConversation();
                                     }
                                 }
