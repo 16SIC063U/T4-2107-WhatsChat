@@ -18,6 +18,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutput;
@@ -268,6 +270,14 @@ public class WhatsChat extends javax.swing.JFrame {
 
 		btnRegister = new javax.swing.JButton();
 		textRegister = new javax.swing.JTextField();
+		textRegister.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode()==KeyEvent.VK_ENTER){
+		            registerName();
+		        }
+			}
+		});
 		jPanel1 = new javax.swing.JPanel();
 		btnCreate = new javax.swing.JButton();
 		btnEdit = new javax.swing.JButton();
@@ -284,6 +294,14 @@ public class WhatsChat extends javax.swing.JFrame {
 		listConversation = new javax.swing.JTextArea();
 		btnSend = new javax.swing.JButton();
 		textMessage = new javax.swing.JTextField();
+		textMessage.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode()==KeyEvent.VK_ENTER){
+		            sendChatMessage();
+		        }
+			}
+		});
 		labelRegisterError = new javax.swing.JLabel();
 		labelMessageError = new javax.swing.JLabel();
 
@@ -569,26 +587,7 @@ public class WhatsChat extends javax.swing.JFrame {
 	}
 
 	private void btnRegisterMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_btnRegisterMouseClicked
-		// TODO add your handling code here:
-		String usernameInput = textRegister.getText();
-		if (usernameValid(usernameInput)) {
-			labelRegisterError.setText("");
-			// TODO: Register User
-			if (!(usernameList.contains(usernameInput))) {
-				try {
-					username = usernameInput;
-					String sendUserMessage = "sendUser::" + username;
-					commonSocket.send(generateMessage(sendUserMessage, commonGroup));
-					btnAddPicture.setVisible(true);
-				} catch (IOException ex) {
-					ex.printStackTrace();
-				}
-			} else {
-				labelRegisterError.setText("Username exist!");
-			}
-		} else {
-			labelRegisterError.setText("Invalid Username !");
-		}
+		registerName();
 	}// GEN-LAST:event_btnRegisterMouseClicked
 
 	private void btnCreateMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_btnCreateMouseClicked
@@ -682,24 +681,7 @@ public class WhatsChat extends javax.swing.JFrame {
 
 	private void btnSendMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_btnSendMouseClicked
 		// TODO add your handling code here:
-		String messageInput = textMessage.getText();
-		if (messageInput != null && !(messageInput.isEmpty())) {
-			labelMessageError.setText("");
-			// TODO: Send Message
-			String message = username + " : " + messageInput;
-			if (activeGroup != "") {
-				try {
-					multicastSocket.send(generateMessage(message, getActiveInet()));
-				} catch (IOException ex) {
-					ex.printStackTrace();
-				}
-				textMessage.setText("");
-			} else {
-				labelMessageError.setText(" No active group to send message !");
-			}
-		} else {
-			labelMessageError.setText(" Cannot send empty message !");
-		}
+		sendChatMessage();
 	}// GEN-LAST:event_btnSendMouseClicked
 
 	private void formWindowClosing(java.awt.event.WindowEvent evt) {// GEN-FIRST:event_formWindowClosing
@@ -761,7 +743,51 @@ public class WhatsChat extends javax.swing.JFrame {
 			}
 		});
 	}
-
+	
+	public void sendChatMessage(){
+		String messageInput = textMessage.getText();
+		if (messageInput != null && !(messageInput.isEmpty())) {
+			labelMessageError.setText("");
+			// TODO: Send Message
+			String message = username + " : " + messageInput;
+			if (activeGroup != "") {
+				try {
+					multicastSocket.send(generateMessage(message, getActiveInet()));
+				} catch (IOException ex) {
+					ex.printStackTrace();
+				}
+				textMessage.setText("");
+			} else {
+				labelMessageError.setText(" No active group to send message !");
+			}
+		} else {
+			labelMessageError.setText(" Cannot send empty message !");
+		}
+	}
+	
+	public void registerName(){
+		// TODO add your handling code here:
+				String usernameInput = textRegister.getText();
+				if (usernameValid(usernameInput)) {
+					labelRegisterError.setText("");
+					// TODO: Register User
+					if (!(usernameList.contains(usernameInput))) {
+						try {
+							username = usernameInput;
+							String sendUserMessage = "sendUser::" + username;
+							commonSocket.send(generateMessage(sendUserMessage, commonGroup));
+							btnAddPicture.setVisible(true);
+						} catch (IOException ex) {
+							ex.printStackTrace();
+						}
+					} else {
+						labelRegisterError.setText("Username exist!");
+					}
+				} else {
+					labelRegisterError.setText("Invalid Username !");
+				}
+	}
+	
 	public boolean usernameValid(String username) {
 		if (username == null || username.isEmpty() || username.length() > 8) {
 			return false;
