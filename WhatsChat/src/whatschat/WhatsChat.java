@@ -56,6 +56,8 @@ import javax.swing.JList;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
+import sun.misc.Lock;
+
 /**
  *
  * @author Juun
@@ -77,8 +79,9 @@ public class WhatsChat extends javax.swing.JFrame {
 
 	// To store a mapping of username and its matching profile pic
 	List<UserImageMap> userImageMapList = new ArrayList<>();
-	
-	//Added this for listview. putthis in a JScrollPane by calling new JScrollPane(lvd.getJList());
+
+	// Added this for listview. putthis in a JScrollPane by calling new
+	// JScrollPane(lvd.getJList());
 	ListProfileDisplay lvd = new ListProfileDisplay();
 
 	/**
@@ -122,12 +125,11 @@ public class WhatsChat extends javax.swing.JFrame {
 							} else if (action.equals("sendUser")) {
 								if (!(usernameList.contains(parameter))) {
 									usernameList.add(parameter);
-									//TODO added by edwin
+									// TODO added by edwin
 									lvd.addUsername(parameter);
 								}
 								updateUserList();
 							} else if (action.equals("sendUserImage")) {
-								System.out.println("Send user image");
 								UserImageMap map = new UserImageMap(parameter.getBytes());
 
 								boolean isInList = false;
@@ -153,7 +155,20 @@ public class WhatsChat extends javax.swing.JFrame {
 									joinedGroupList.put(msgArray[2], msgArray[3]);
 									joinedGroupMembers.put(msgArray[2], new ArrayList<>());
 									updateGroupMembers(msgArray[2]);
+									System.out.println("1. Invite user");
 									joinGroup(msgArray[3]);
+									updateGroupList();
+									updateConversation();
+								}
+							} else if (action.equals("removeGroup")) {
+								// TODO remove group done by edwin
+								System.out.println("removeGroup:: " + parameter);
+								if (groupList.containsKey(parameter)) {
+									groupList.remove(parameter);
+									String ipAddr = joinedGroupList.get(parameter);
+									joinedGroupList.remove(parameter);
+									joinedGroupChats.remove(ipAddr);
+									joinedGroupMembers.remove(parameter);
 									updateGroupList();
 									updateConversation();
 								}
@@ -187,6 +202,7 @@ public class WhatsChat extends javax.swing.JFrame {
 									joinedGroupList.put(msgArray[2], ipStr);
 									joinedGroupMembers.put(msgArray[2], new ArrayList<>());
 									updateGroupMembers(msgArray[2]);
+									System.out.println("username join group");
 									joinGroup(ipStr);
 									updateGroupList();
 									updateConversation();
@@ -432,7 +448,7 @@ public class WhatsChat extends javax.swing.JFrame {
 					try {
 						String sendUserMessage = "sendUserImage::" + userImageMap.getByteMessage();
 						commonSocket.send(generateMessage(sendUserMessage, commonGroup));
-						//Update list
+						// Update list
 						lvd.refresh();
 					} catch (IOException e) {
 						System.out.println("ERROR SENDING user image");
@@ -443,7 +459,7 @@ public class WhatsChat extends javax.swing.JFrame {
 		});
 
 		lblProfilePic = new JLabel("");
-		
+
 		scrollPane = new JScrollPane(lvd.getJList());
 
 		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -646,7 +662,22 @@ public class WhatsChat extends javax.swing.JFrame {
 
 	private void btnDeleteMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_btnDeleteMouseClicked
 		// TODO add your handling code here:
-		System.out.println(joinedGroupChats.toString());
+
+		if (activeGroup.isEmpty()) {
+			return;
+		}
+		// TODO delete here
+		// Remove active group
+		try {
+			multicastSocket.send(generateMessage("removeGroup", multicastGroup));
+			String message = "removeGroup::" + activeGroup;
+			commonSocket.send(generateMessage(message, commonGroup));
+			activeGroup = "";
+		} catch (IOException e) {
+			System.out.println("Delete group error: " + e);
+			e.printStackTrace();
+		}
+
 	}// GEN-LAST:event_btnDeleteMouseClicked
 
 	private void btnSendMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_btnSendMouseClicked
@@ -808,8 +839,11 @@ public class WhatsChat extends javax.swing.JFrame {
 		}
 	}
 
+//	private Lock lock = new Lock();
+//TODO THREADNOT CLOSED PROPERLY WHEN CLOSING GROUP
 	public void joinGroup(String ipStr) {
 		try {
+
 			multicastGroup = InetAddress.getByName(ipStr);
 			multicastSocket = new MulticastSocket(portNo);
 			multicastSocket.joinGroup(multicastGroup);
@@ -817,29 +851,50 @@ public class WhatsChat extends javax.swing.JFrame {
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
+					System.out.println("Start run");
 					byte buf1[] = new byte[1000];
 					DatagramPacket dgpReceived = new DatagramPacket(buf1, buf1.length);
 					while (true) {
+
+//						try {
+//							lock.lock();
+//						} catch (InterruptedException e) {
+//							e.printStackTrace();
+//						}
+//
+//						System.out.println("Current thread: " + Thread.currentThread().getId());
 						try {
 							multicastSocket.receive(dgpReceived);
 							byte[] receivedData = dgpReceived.getData();
 							int length = dgpReceived.getLength();
 							String msg = new String(receivedData, 0, length);
+							System.out.println("Received joingroup packet: " + msg);
+
+							if (msg.equals("removeGroup")) {
+								// Stop current thread
+								System.out.println("Stop thread: " + Thread.currentThread().getId());
+								Thread.currentThread().interrupt();
+								System.out.println("Thread after stopping: " + Thread.currentThread().getId());
+							}
 							if (joinedGroupChats.get(ipStr) != null) {
 								String previousChats = joinedGroupChats.get(ipStr);
 								joinedGroupChats.put(ipStr, previousChats + "\n" + msg);
 							} else {
-								System.out.println(username + " newchat");
 								joinedGroupChats.put(ipStr, msg);
+
 							}
 							updateConversation();
+
+//							lock.unlock();
 						} catch (IOException ex) {
+							System.out.println("thread run ex: " + ex);
 							ex.printStackTrace();
 						}
 					}
 				}
 			}).start();
 			String message = username + " joined " + ipStr;
+			System.out.println("join group");
 			multicastSocket.send(generateMessage(message, multicastGroup));
 		} catch (IOException ex) {
 			ex.printStackTrace();
