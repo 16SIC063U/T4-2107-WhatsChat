@@ -159,6 +159,7 @@ public class WhatsChat extends javax.swing.JFrame {
 									updateGroupMembers(msgArray[2]);
 									System.out.println("1. Invite user");
 									joinGroup(msgArray[3]);
+                                                                        activeGroup = msgArray[2];
 									updateGroupList();
 									updateConversation();
 								}
@@ -265,295 +266,446 @@ public class WhatsChat extends javax.swing.JFrame {
 	 */
 	@SuppressWarnings("unchecked")
 	// <editor-fold defaultstate="collapsed" desc="Generated
-	// Code">//GEN-BEGIN:initComponents
-	private void initComponents() {
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
 
-		btnRegister = new javax.swing.JButton();
-		textRegister = new javax.swing.JTextField();
-		textRegister.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				if (e.getKeyCode()==KeyEvent.VK_ENTER){
-		            registerName();
-		        }
-			}
-		});
-		jPanel1 = new javax.swing.JPanel();
-		btnCreate = new javax.swing.JButton();
-		btnEdit = new javax.swing.JButton();
-		btnDelete = new javax.swing.JButton();
-		textGroup = new javax.swing.JTextField();
-		labelGroupError = new javax.swing.JLabel();
-		btnCancel = new javax.swing.JButton();
-		jPanel2 = new javax.swing.JPanel();
-		panelUser = new javax.swing.JPanel();
-		jPanel3 = new javax.swing.JPanel();
-		panelGroup = new javax.swing.JPanel();
-		jPanel4 = new javax.swing.JPanel();
-		jScrollPane3 = new javax.swing.JScrollPane();
-		listConversation = new javax.swing.JTextArea();
-		btnSend = new javax.swing.JButton();
-		textMessage = new javax.swing.JTextField();
-		textMessage.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				if (e.getKeyCode()==KeyEvent.VK_ENTER){
-		            sendChatMessage();
-		        }
-			}
-		});
-		labelRegisterError = new javax.swing.JLabel();
-		labelMessageError = new javax.swing.JLabel();
+        btnRegister = new javax.swing.JButton();
+        textRegister = new javax.swing.JTextField();
+        jPanel1 = new javax.swing.JPanel();
+        btnCreate = new javax.swing.JButton();
+        textGroup = new javax.swing.JTextField();
+        labelGroupError = new javax.swing.JLabel();
+        btnCancel = new javax.swing.JButton();
+        jLabel3 = new javax.swing.JLabel();
+        jPanel5 = new javax.swing.JPanel();
+        btnDelete = new javax.swing.JButton();
+        btnEdit = new javax.swing.JButton();
+        btnLeave = new javax.swing.JButton();
+        textSelectedGroup = new javax.swing.JTextField();
+        labelEditGroupError = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        jPanel2 = new javax.swing.JPanel();
+        panelUser = new javax.swing.JPanel();
+        jPanel3 = new javax.swing.JPanel();
+        panelGroup = new javax.swing.JPanel();
+        jPanel4 = new javax.swing.JPanel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        listConversation = new javax.swing.JTextArea();
+        btnSend = new javax.swing.JButton();
+        textMessage = new javax.swing.JTextField();
+        labelRegisterError = new javax.swing.JLabel();
+        labelMessageError = new javax.swing.JLabel();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        jPanel6 = new javax.swing.JPanel();
+        jPanel7 = new javax.swing.JPanel();
+        btnAddPicture = new javax.swing.JButton();
 
-		setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-		addWindowListener(new java.awt.event.WindowAdapter() {
-			public void windowClosing(java.awt.event.WindowEvent evt) {
-				formWindowClosing(evt);
-			}
-		});
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+        });
 
-		btnRegister.setText("Register User");
-		btnRegister.setToolTipText("");
-		btnRegister.addMouseListener(new java.awt.event.MouseAdapter() {
-			public void mouseClicked(java.awt.event.MouseEvent evt) {
-				btnRegisterMouseClicked(evt);
-			}
-		});
+        btnRegister.setFont(new java.awt.Font("Tahoma", 1, 13)); // NOI18N
+        btnRegister.setText("Register User");
+        btnRegister.setToolTipText("");
+        btnRegister.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRegisterActionPerformed(evt);
+            }
+        });
 
-		jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Group Management"));
+        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Group Management"));
 
-		btnCreate.setText("Create");
-		btnCreate.addMouseListener(new java.awt.event.MouseAdapter() {
-			public void mouseClicked(java.awt.event.MouseEvent evt) {
-				btnCreateMouseClicked(evt);
-			}
-		});
+        btnCreate.setFont(new java.awt.Font("Tahoma", 1, 13)); // NOI18N
+        btnCreate.setText("Create");
+        btnCreate.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnCreateMouseClicked(evt);
+            }
+        });
 
-		btnEdit.setText("Edit");
-		btnEdit.addMouseListener(new java.awt.event.MouseAdapter() {
-			public void mouseClicked(java.awt.event.MouseEvent evt) {
-				btnEditMouseClicked(evt);
-			}
-		});
+        labelGroupError.setForeground(new java.awt.Color(255, 59, 48));
+        labelGroupError.setText("                          ");
 
-		btnDelete.setText("Delete");
-		btnDelete.setToolTipText("");
-		btnDelete.addMouseListener(new java.awt.event.MouseAdapter() {
-			public void mouseClicked(java.awt.event.MouseEvent evt) {
-				btnDeleteMouseClicked(evt);
-			}
-		});
+        btnCancel.setFont(new java.awt.Font("Tahoma", 1, 13)); // NOI18N
+        btnCancel.setText("Cancel");
+        btnCancel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnCancelMouseClicked(evt);
+            }
+        });
 
-		labelGroupError.setForeground(new java.awt.Color(255, 59, 48));
-		labelGroupError.setText("                          ");
+        jLabel3.setFont(new java.awt.Font("Tahoma", 1, 13)); // NOI18N
+        jLabel3.setText("Group Name");
 
-		btnCancel.setText("Cancel");
-		btnCancel.addMouseListener(new java.awt.event.MouseAdapter() {
-			public void mouseClicked(java.awt.event.MouseEvent evt) {
-				btnCancelMouseClicked(evt);
-			}
-		});
+        jPanel5.setBorder(javax.swing.BorderFactory.createTitledBorder("Manage Selected Group"));
 
-		javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-		jPanel1.setLayout(jPanel1Layout);
-		jPanel1Layout.setHorizontalGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addGroup(jPanel1Layout.createSequentialGroup().addContainerGap().addGroup(jPanel1Layout
-						.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-						.addGroup(jPanel1Layout.createSequentialGroup().addComponent(btnCreate)
-								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-								.addComponent(btnCancel)
-								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED,
-										javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-								.addComponent(btnEdit)
-								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-								.addComponent(btnDelete).addGap(5, 5, 5))
-						.addComponent(textGroup).addGroup(jPanel1Layout.createSequentialGroup()
-								.addComponent(labelGroupError).addGap(0, 0, Short.MAX_VALUE)))
-						.addContainerGap()));
-		jPanel1Layout
-				.setVerticalGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-						.addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-								.addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-								.addComponent(textGroup, javax.swing.GroupLayout.PREFERRED_SIZE,
-										javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-								.addComponent(labelGroupError)
-								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-								.addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-										.addComponent(btnCreate).addComponent(btnEdit).addComponent(btnDelete)
-										.addComponent(btnCancel))));
+        btnDelete.setFont(new java.awt.Font("Tahoma", 1, 13)); // NOI18N
+        btnDelete.setText("Delete");
+        btnDelete.setToolTipText("");
+        btnDelete.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnDeleteMouseClicked(evt);
+            }
+        });
 
-		jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Online Users"));
+        btnEdit.setFont(new java.awt.Font("Tahoma", 1, 13)); // NOI18N
+        btnEdit.setText("Edit");
+        btnEdit.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnEditMouseClicked(evt);
+            }
+        });
 
-		javax.swing.GroupLayout panelUserLayout = new javax.swing.GroupLayout(panelUser);
-		panelUser.setLayout(panelUserLayout);
-		panelUserLayout.setHorizontalGroup(panelUserLayout
-				.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addGap(0, 190, Short.MAX_VALUE));
-		panelUserLayout.setVerticalGroup(panelUserLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addGap(0, 0, Short.MAX_VALUE));
+        btnLeave.setFont(new java.awt.Font("Tahoma", 1, 13)); // NOI18N
+        btnLeave.setText("Leave");
+        btnLeave.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnLeaveMouseClicked(evt);
+            }
+        });
 
-		javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-		jPanel2.setLayout(jPanel2Layout);
-		jPanel2Layout.setHorizontalGroup(
-				jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addComponent(panelUser,
-						javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
-		jPanel2Layout.setVerticalGroup(
-				jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addComponent(panelUser,
-						javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
+        textSelectedGroup.setText("None.");
+        textSelectedGroup.setEnabled(false);
 
-		jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder("Groups"));
+        labelEditGroupError.setForeground(new java.awt.Color(255, 59, 48));
+        labelEditGroupError.setText("                          ");
 
-		javax.swing.GroupLayout panelGroupLayout = new javax.swing.GroupLayout(panelGroup);
-		panelGroup.setLayout(panelGroupLayout);
-		panelGroupLayout.setHorizontalGroup(panelGroupLayout
-				.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addGap(0, 190, Short.MAX_VALUE));
-		panelGroupLayout.setVerticalGroup(panelGroupLayout
-				.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addGap(0, 200, Short.MAX_VALUE));
+        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
+        jPanel5.setLayout(jPanel5Layout);
+        jPanel5Layout.setHorizontalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(textSelectedGroup)
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel5Layout.createSequentialGroup()
+                                .addComponent(btnEdit)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(btnLeave)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(btnDelete))
+                            .addComponent(labelEditGroupError))
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        jPanel5Layout.setVerticalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(textSelectedGroup, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(labelEditGroupError, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnEdit)
+                    .addComponent(btnDelete)
+                    .addComponent(btnLeave))
+                .addContainerGap())
+        );
 
-		javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-		jPanel3.setLayout(jPanel3Layout);
-		jPanel3Layout.setHorizontalGroup(
-				jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addComponent(panelGroup,
-						javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
-		jPanel3Layout.setVerticalGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addGroup(jPanel3Layout.createSequentialGroup()
-						.addComponent(panelGroup, javax.swing.GroupLayout.PREFERRED_SIZE,
-								javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addGap(0, 0, Short.MAX_VALUE)));
+        jLabel4.setFont(new java.awt.Font("Tahoma", 0, 11)); // NOI18N
+        jLabel4.setText("(Group name must be unique and not in used)");
 
-		jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder("Conversation"));
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(textGroup)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(labelGroupError))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(btnCreate)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btnCancel)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel4))
+                            .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(labelGroupError, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel3))
+                .addGap(10, 10, 10)
+                .addComponent(textGroup, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnCreate)
+                    .addComponent(btnCancel)
+                    .addComponent(jLabel4))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
 
-		listConversation.setEditable(false);
-		listConversation.setColumns(20);
-		listConversation.setRows(5);
-		jScrollPane3.setViewportView(listConversation);
+        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Group Members", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 13))); // NOI18N
 
-		javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
-		jPanel4.setLayout(jPanel4Layout);
-		jPanel4Layout.setHorizontalGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addGroup(jPanel4Layout.createSequentialGroup().addContainerGap()
-						.addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 359, Short.MAX_VALUE)
-						.addContainerGap()));
-		jPanel4Layout.setVerticalGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addComponent(jScrollPane3));
+        javax.swing.GroupLayout panelUserLayout = new javax.swing.GroupLayout(panelUser);
+        panelUser.setLayout(panelUserLayout);
+        panelUserLayout.setHorizontalGroup(
+            panelUserLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 190, Short.MAX_VALUE)
+        );
+        panelUserLayout.setVerticalGroup(
+            panelUserLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
 
-		btnSend.setText("Send Message");
-		btnSend.addMouseListener(new java.awt.event.MouseAdapter() {
-			public void mouseClicked(java.awt.event.MouseEvent evt) {
-				btnSendMouseClicked(evt);
-			}
-		});
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(panelUser, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(panelUser, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
 
-		labelRegisterError.setForeground(new java.awt.Color(255, 59, 48));
-		labelRegisterError.setText("                                ");
+        jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Groups", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 13))); // NOI18N
+        jPanel3.setToolTipText("");
 
-		labelMessageError.setForeground(new java.awt.Color(255, 59, 48));
-		labelMessageError.setText("                             ");
+        javax.swing.GroupLayout panelGroupLayout = new javax.swing.GroupLayout(panelGroup);
+        panelGroup.setLayout(panelGroupLayout);
+        panelGroupLayout.setHorizontalGroup(
+            panelGroupLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 190, Short.MAX_VALUE)
+        );
+        panelGroupLayout.setVerticalGroup(
+            panelGroupLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 200, Short.MAX_VALUE)
+        );
 
-		btnAddPicture = new JButton("Add Pic");
-		btnAddPicture.setVisible(false);
-		btnAddPicture.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				// Add profile pic
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(panelGroup, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addComponent(panelGroup, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
+        );
 
-				ProfilePicture pp = new ProfilePicture();
+        jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Conversation", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 13))); // NOI18N
 
-				if (pp.selectProfilePic(username)) {
-					// Set profile on panel
-					lblProfilePic.setIcon(pp.getImageIconProfilePic(lblProfilePic));
-					UserImageMap userImageMap = new UserImageMap(username, pp.getProfilePic());
-					// Update other user of profile pic
-					try {
-						String sendUserMessage = "sendUserImage::" + userImageMap.getByteMessage();
-						commonSocket.send(generateMessage(sendUserMessage, commonGroup));
-						// Update list
-						lvd.refresh();
-					} catch (IOException e) {
-						System.out.println("ERROR SENDING user image");
-						e.printStackTrace();
-					}
-				}
-			}
-		});
+        listConversation.setEditable(false);
+        listConversation.setColumns(20);
+        listConversation.setRows(5);
+        jScrollPane3.setViewportView(listConversation);
 
-		lblProfilePic = new JLabel("");
+        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
+        jPanel4.setLayout(jPanel4Layout);
+        jPanel4Layout.setHorizontalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 409, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        jPanel4Layout.setVerticalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane3)
+        );
 
-		scrollPane = new JScrollPane(lvd.getJList());
+        btnSend.setFont(new java.awt.Font("Tahoma", 1, 13)); // NOI18N
+        btnSend.setText("Send Message");
+        btnSend.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnSendMouseClicked(evt);
+            }
+        });
 
-		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-		layout.setHorizontalGroup(layout.createParallelGroup(Alignment.LEADING).addGroup(layout.createSequentialGroup()
-				.addContainerGap()
-				.addGroup(layout.createParallelGroup(Alignment.LEADING)
-						.addGroup(layout
-								.createSequentialGroup()
-								.addGroup(layout
-										.createParallelGroup(Alignment.TRAILING, false)
-										.addComponent(jPanel1, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
-												Short.MAX_VALUE)
-										.addGroup(layout.createSequentialGroup().addComponent(btnRegister)
-												.addPreferredGap(ComponentPlacement.RELATED).addComponent(textRegister,
-														GroupLayout.PREFERRED_SIZE, 200, GroupLayout.PREFERRED_SIZE)))
-								.addGroup(layout.createParallelGroup(Alignment.LEADING)
-										.addGroup(layout.createSequentialGroup()
-												.addPreferredGap(ComponentPlacement.RELATED)
-												.addComponent(labelRegisterError))
-										.addGroup(layout.createSequentialGroup().addGap(57).addComponent(scrollPane,
-												GroupLayout.PREFERRED_SIZE, 132, GroupLayout.PREFERRED_SIZE)))
-								.addPreferredGap(ComponentPlacement.RELATED, 203, Short.MAX_VALUE)
-								.addGroup(layout.createParallelGroup(Alignment.LEADING)
-										.addGroup(layout.createSequentialGroup().addGap(10).addComponent(btnAddPicture,
-												GroupLayout.PREFERRED_SIZE, 88, GroupLayout.PREFERRED_SIZE))
-										.addComponent(lblProfilePic, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE,
-												107, GroupLayout.PREFERRED_SIZE)))
-						.addGroup(layout.createSequentialGroup().addComponent(btnSend)
-								.addPreferredGap(ComponentPlacement.UNRELATED)
-								.addGroup(layout.createParallelGroup(Alignment.LEADING).addComponent(labelMessageError)
-										.addComponent(textMessage, 691, 691, 691)))
-						.addGroup(layout.createSequentialGroup()
-								.addComponent(jPanel2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-										GroupLayout.PREFERRED_SIZE)
-								.addGap(1)
-								.addComponent(jPanel3, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-										GroupLayout.PREFERRED_SIZE)
-								.addPreferredGap(ComponentPlacement.RELATED).addComponent(jPanel4,
-										GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-				.addContainerGap()));
-		layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING).addGroup(layout.createSequentialGroup()
-				.addGroup(layout.createParallelGroup(Alignment.LEADING).addGroup(layout.createSequentialGroup()
-						.addContainerGap()
-						.addGroup(layout.createParallelGroup(Alignment.LEADING).addGroup(layout.createSequentialGroup()
-								.addGroup(layout.createParallelGroup(Alignment.BASELINE).addComponent(btnRegister)
-										.addComponent(textRegister, GroupLayout.PREFERRED_SIZE,
-												GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-										.addComponent(labelRegisterError))
-								.addPreferredGap(ComponentPlacement.RELATED)
-								.addComponent(jPanel1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-										GroupLayout.PREFERRED_SIZE))
-								.addGroup(layout.createSequentialGroup()
-										.addComponent(lblProfilePic, GroupLayout.PREFERRED_SIZE, 100,
-												GroupLayout.PREFERRED_SIZE)
-										.addPreferredGap(ComponentPlacement.RELATED).addComponent(btnAddPicture)))
-						.addPreferredGap(ComponentPlacement.UNRELATED)
-						.addGroup(layout.createParallelGroup(Alignment.LEADING, false)
-								.addComponent(jPanel4, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
-										Short.MAX_VALUE)
-								.addComponent(jPanel3, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
-										Short.MAX_VALUE)
-								.addComponent(jPanel2, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
-										Short.MAX_VALUE))
-						.addPreferredGap(ComponentPlacement.RELATED)
-						.addGroup(layout.createParallelGroup(Alignment.BASELINE).addComponent(btnSend).addComponent(
-								textMessage, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-								GroupLayout.PREFERRED_SIZE))
-						.addPreferredGap(ComponentPlacement.RELATED)
-						.addComponent(labelMessageError, GroupLayout.PREFERRED_SIZE, 16, GroupLayout.PREFERRED_SIZE))
-						.addGroup(layout.createSequentialGroup().addGap(32).addComponent(scrollPane,
-								GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE)))
-				.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
-		getContentPane().setLayout(layout);
+        labelRegisterError.setForeground(new java.awt.Color(255, 59, 48));
+        labelRegisterError.setText("                                ");
 
-		pack();
-	}// </editor-fold>//GEN-END:initComponents
+        labelMessageError.setForeground(new java.awt.Color(255, 59, 48));
+        labelMessageError.setText("                             ");
+
+        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 13)); // NOI18N
+        jLabel1.setText("User ID");
+
+        jLabel2.setFont(new java.awt.Font("Tahoma", 0, 11)); // NOI18N
+        jLabel2.setText("(User ID must not contain spaces, begin with number or more than 8 characters) ");
+
+        jPanel6.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Online User", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 13))); // NOI18N
+
+        javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
+        jPanel6.setLayout(jPanel6Layout);
+        jPanel6Layout.setHorizontalGroup(
+            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 157, Short.MAX_VALUE)
+        );
+        jPanel6Layout.setVerticalGroup(
+            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+
+        jPanel7.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "User Profile", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 1, 13))); // NOI18N
+
+        btnAddPicture.setText("Add Pic");
+        btnAddPicture.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                btnAddPictureMouseClicked(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
+        jPanel7.setLayout(jPanel7Layout);
+        jPanel7Layout.setHorizontalGroup(
+            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel7Layout.createSequentialGroup()
+                .addGap(88, 88, 88)
+                .addComponent(btnAddPicture)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel7Layout.setVerticalGroup(
+            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel7Layout.createSequentialGroup()
+                .addContainerGap(151, Short.MAX_VALUE)
+                .addComponent(btnAddPicture)
+                .addGap(141, 141, 141))
+        );
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(btnSend)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(labelMessageError)
+                            .addComponent(textMessage)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(1, 1, 1)
+                        .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel1)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(labelRegisterError))
+                                    .addComponent(textRegister))
+                                .addGap(18, 18, 18)
+                                .addComponent(btnRegister))
+                            .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(18, 18, 18)
+                        .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jPanel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(10, 10, 10)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jPanel6, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(labelRegisterError)
+                            .addComponent(jLabel1))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(textRegister, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnRegister))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnSend)
+                    .addComponent(textMessage, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(labelMessageError, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        pack();
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void btnLeaveMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnLeaveMouseClicked
+        // TODO add your handling code here:
+        if (activeGroup.isEmpty()) {
+            return;
+        }
+        // TODO delete here
+        // Remove active group
+        try {
+            multicastSocket.send(generateMessage("leaveGroup::"+activeGroup+"::"+username, multicastGroup));
+            String ipAddr = joinedGroupList.get(activeGroup);
+            joinedGroupChats.remove(ipAddr);
+            joinedGroupList.remove(activeGroup);
+            if(joinedGroupMembers.get(activeGroup).size() == 1){
+                String message = "removeGroup::" + activeGroup;
+                commonSocket.send(generateMessage(message, commonGroup));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }//GEN-LAST:event_btnLeaveMouseClicked
+
+    private void btnAddPictureMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnAddPictureMouseClicked
+        // TODO add your handling code here:
+        // Add profile pic
+        ProfilePicture pp = new ProfilePicture();
+
+        if (pp.selectProfilePic(username)) {
+                // Set profile on panel
+                lblProfilePic.setIcon(pp.getImageIconProfilePic(lblProfilePic));
+                UserImageMap userImageMap = new UserImageMap(username, pp.getProfilePic());
+                // Update other user of profile pic
+                try {
+                        String sendUserMessage = "sendUserImage::" + userImageMap.getByteMessage();
+                        commonSocket.send(generateMessage(sendUserMessage, commonGroup));
+                        // Update list
+                        lvd.refresh();
+                } catch (IOException e) {
+                        System.out.println("ERROR SENDING user image");
+                        e.printStackTrace();
+                }
+        }
+    }//GEN-LAST:event_btnAddPictureMouseClicked
+
+    private void btnRegisterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegisterActionPerformed
+        // TODO add your handling code here:
+        registerName();
+    }//GEN-LAST:event_btnRegisterActionPerformed
 
 	private void postInitComponent() {
 		listUser = new JTextArea();
@@ -584,11 +736,9 @@ public class WhatsChat extends javax.swing.JFrame {
 
 		btnCancel.setVisible(false);
 		btnCancel.setEnabled(false);
+                
+                scrollPane = new JScrollPane(lvd.getJList());
 	}
-
-	private void btnRegisterMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_btnRegisterMouseClicked
-		registerName();
-	}// GEN-LAST:event_btnRegisterMouseClicked
 
 	private void btnCreateMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_btnCreateMouseClicked
 		// TODO add your handling code here:
@@ -645,39 +795,35 @@ public class WhatsChat extends javax.swing.JFrame {
 
 	private void btnEditMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_btnEditMouseClicked
 		// TODO add your handling code here:
-		String groupInput = textGroup.getText();
+		String groupInput = textSelectedGroup.getText();
 		if (groupInput != null && joinedGroupList.containsKey(groupInput)) {
 			manageGroup newFrame = new manageGroup();
 			newFrame.setGroupName(textGroup.getText());
 			newFrame.setUsers(usernameList, joinedGroupMembers.get(groupInput));
 			newFrame.setVisible(true);
 			// TODO: set the list
-		} else if (textGroup.getText() == null || textGroup.getText().isEmpty()) {
-			labelGroupError.setText(" Group name to be edited cannot be empty !");
-		} else if (!joinedGroupList.containsKey(textGroup.getText())) {
-			labelGroupError.setText(" Not authorised to edit the group !");
+		} else if (groupInput.equals("None.")) {
+			labelEditGroupError.setText(" No group is selected yet !");
+		} else if (!joinedGroupList.containsKey(groupInput)) {
+			labelEditGroupError.setText(" Not authorised to edit the group !");
 		}
 	}// GEN-LAST:event_btnEditMouseClicked
 
 	private void btnDeleteMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_btnDeleteMouseClicked
-		// TODO add your handling code here:
-
-		if (activeGroup.isEmpty()) {
-			return;
-		}
-		// TODO delete here
-		// Remove active group
-		try {
-			multicastSocket.send(generateMessage("removeGroup", multicastGroup));
-			String message = "removeGroup::" + activeGroup;
-			commonSocket.send(generateMessage(message, commonGroup));
-			activeGroup = "";
-		} catch (IOException e) {
-			System.out.println("Delete group error: " + e);
-			e.printStackTrace();
-		}
-
-	}// GEN-LAST:event_btnDeleteMouseClicked
+            // TODO add your handling code here:
+            if(activeGroup.isEmpty()){
+                return;
+            }
+            try {
+                    multicastSocket.send(generateMessage("removeGroup", multicastGroup));
+                    String message = "removeGroup::" + activeGroup;
+                    commonSocket.send(generateMessage(message, commonGroup));
+                    activeGroup = "";
+                } catch (IOException e) {
+                    System.out.println("Delete group error: " + e);
+                    e.printStackTrace();
+                }
+        }// GEN-LAST:event_btnDeleteMouseClicked
 
 	private void btnSendMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_btnSendMouseClicked
 		// TODO add your handling code here:
@@ -780,6 +926,8 @@ public class WhatsChat extends javax.swing.JFrame {
 						} catch (IOException ex) {
 							ex.printStackTrace();
 						}
+                                                btnRegister.setEnabled(false);
+                                                textRegister.setEnabled(false);
 					} else {
 						labelRegisterError.setText("Username exist!");
 					}
@@ -807,6 +955,7 @@ public class WhatsChat extends javax.swing.JFrame {
 	}
 
 	public void updateGroupList() {
+            System.out.println("AG : "+activeGroup);
 		List<String> groups = new ArrayList<String>(joinedGroupList.keySet());
 		String groupNameList = "";
 		JRadioButton button;
@@ -817,13 +966,15 @@ public class WhatsChat extends javax.swing.JFrame {
 			button.setName(group);
 			if (activeGroup.equals(group)) {
 				button.setSelected(true);
+                                textSelectedGroup.setText(activeGroup);
 			}
 			button.addItemListener(new ItemListener() {
 				@Override
 				public void itemStateChanged(ItemEvent event) {
 					if (event.getStateChange() == ItemEvent.SELECTED) {
 						activeGroup = ((JRadioButton) event.getItem()).getName();
-						updateConversation();
+						textSelectedGroup.setText(activeGroup);
+                                                updateConversation();
 					}
 				}
 			});
@@ -895,21 +1046,54 @@ public class WhatsChat extends javax.swing.JFrame {
 							int length = dgpReceived.getLength();
 							String msg = new String(receivedData, 0, length);
 							System.out.println("Received joingroup packet: " + msg);
-
+                                                        String subString = "";
+                                                        if(msg.length() > 11){
+                                                            subString = msg.substring(0, 10);
+                                                        }
 							if (msg.equals("removeGroup")) {
 								// Stop current thread
 								System.out.println("Stop thread: " + Thread.currentThread().getId());
 								Thread.currentThread().interrupt();
 								System.out.println("Thread after stopping: " + Thread.currentThread().getId());
-							}
-							if (joinedGroupChats.get(ipStr) != null) {
-								String previousChats = joinedGroupChats.get(ipStr);
-								joinedGroupChats.put(ipStr, previousChats + "\n" + msg);
-							} else {
-								joinedGroupChats.put(ipStr, msg);
-
-							}
-							updateConversation();
+							} 
+                                                        else if (subString.equals("leaveGroup")){
+                                                            String[] msgArray = msg.split("::");
+                                                            List<String> members = joinedGroupMembers.get(msgArray[1]);
+                                                            if(members.size() > 0){
+                                                                members.remove(msgArray[2]);
+                                                                System.out.println(members.toString());
+                                                                joinedGroupMembers.put(msgArray[1], members);
+                                                                if(!msgArray[2].equals(username)){
+                                                                    String message = msgArray[2] + " has left the group...";
+                                                                    if (joinedGroupChats.get(ipStr) != null) {
+                                                                        String previousChats = joinedGroupChats.get(ipStr);
+                                                                        joinedGroupChats.put(ipStr, previousChats + "\n" + message);
+                                                                    } else {
+                                                                        joinedGroupChats.put(ipStr, message);
+                                                                    }
+                                                                }
+                                                                else{
+                                                                    activeGroup="";
+                                                                }
+                                                                updateConversation();
+                                                                updateGroupList();
+                                                            }
+                                                        }
+                                                        else{
+                                                            if (joinedGroupChats.get(ipStr) != null) {
+                                                                String[] chats = joinedGroupChats.get(ipStr).split("\n");
+                                                                if(!chats[chats.length-1].equals(msg)){
+                                                                    String previousChats = joinedGroupChats.get(ipStr);
+                                                                    joinedGroupChats.put(ipStr, previousChats + "\n" + msg);
+                                                                }else{
+                                                                    joinedGroupChats.put(ipStr, msg);
+                                                                }
+                                                            } else {
+                                                                joinedGroupChats.put(ipStr, msg);
+                                                            }
+                                                            updateConversation();
+                                                        }
+							
 
 //							lock.unlock();
 						} catch (IOException ex) {
@@ -927,29 +1111,39 @@ public class WhatsChat extends javax.swing.JFrame {
 		}
 	}
 
-	// Variables declaration - do not modify//GEN-BEGIN:variables
-	private javax.swing.JButton btnCancel;
-	private javax.swing.JButton btnCreate;
-	private javax.swing.JButton btnDelete;
-	private javax.swing.JButton btnAddPicture;
-	private javax.swing.JButton btnEdit;
-	private javax.swing.JButton btnRegister;
-	private javax.swing.JButton btnSend;
-	private javax.swing.JPanel jPanel1;
-	private javax.swing.JPanel jPanel2;
-	private javax.swing.JPanel jPanel3;
-	private javax.swing.JPanel jPanel4;
-	private javax.swing.JScrollPane jScrollPane3;
-	private javax.swing.JLabel labelGroupError;
-	private javax.swing.JLabel labelMessageError;
-	private javax.swing.JLabel labelRegisterError;
-	private javax.swing.JTextArea listConversation;
-	private javax.swing.JPanel panelGroup;
-	private javax.swing.JPanel panelUser;
-	private javax.swing.JTextField textGroup;
-	private javax.swing.JTextField textMessage;
-	private javax.swing.JTextField textRegister;
-	// End of variables declaration//GEN-END:variables
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAddPicture;
+    private javax.swing.JButton btnCancel;
+    private javax.swing.JButton btnCreate;
+    private javax.swing.JButton btnDelete;
+    private javax.swing.JButton btnEdit;
+    private javax.swing.JButton btnLeave;
+    private javax.swing.JButton btnRegister;
+    private javax.swing.JButton btnSend;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
+    private javax.swing.JPanel jPanel6;
+    private javax.swing.JPanel jPanel7;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JLabel labelEditGroupError;
+    private javax.swing.JLabel labelGroupError;
+    private javax.swing.JLabel labelMessageError;
+    private javax.swing.JLabel labelRegisterError;
+    private javax.swing.JTextArea listConversation;
+    private javax.swing.JPanel panelGroup;
+    private javax.swing.JPanel panelUser;
+    private javax.swing.JTextField textGroup;
+    private javax.swing.JTextField textMessage;
+    private javax.swing.JTextField textRegister;
+    private javax.swing.JTextField textSelectedGroup;
+    // End of variables declaration//GEN-END:variables
 	private JTextArea listUser;
 	private JScrollPane scrollUser;
 	private JPanel panelUserCheckbox;
