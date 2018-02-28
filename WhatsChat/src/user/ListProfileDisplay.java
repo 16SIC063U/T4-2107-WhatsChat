@@ -5,7 +5,6 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.DefaultListCellRenderer;
@@ -14,33 +13,38 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JList;
 
+import whatschat.WhatsChat;
+
 public class ListProfileDisplay {
 
-	private DefaultListModel model = new DefaultListModel();
-	private JList list;
+	private DefaultListModel<String> model = new DefaultListModel<String>();
+	private JList<String> list;
 
 	public void refresh() {
-		Object o = new Object();
+		String o = new String();
 		model.addElement(o);
 		model.removeElement(o);
 	}
+
 	public void addUsername(String username) {
 		model.addElement(username);
 	}
-        public void removeUsername(String username) {
+
+	public void removeUsername(String username) {
 		model.removeElement(username);
 	}
 
-	public JList getJList() {
+	public JList<String> getJList() {
 		return list;
 	}
 
 	public ListProfileDisplay() {
-		list = new JList(model);
+		list = new JList<String>(model);
 		list.setCellRenderer(new ProfileRenderer());
 	}
 
 	class ProfileRenderer extends DefaultListCellRenderer {
+
 		Font font = new Font("helvitica", Font.LAYOUT_LEFT_TO_RIGHT, 12);
 
 		@Override
@@ -48,12 +52,10 @@ public class ListProfileDisplay {
 				boolean cellHasFocus) {
 
 			JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-
 			// Get file from images
-
 			try {
-				File file = new File("images/" + model.get(index) + ".jpg");
-				if(!file.exists()) {
+				File file = new File(ImageUtil.getUserFolderPath(WhatsChat.username) + model.get(index) + ".jpg");
+				if (!file.exists()) {
 					file = new File("no_img.png");
 				}
 				BufferedImage image;
@@ -65,7 +67,6 @@ public class ListProfileDisplay {
 				e.printStackTrace();
 			}
 
-			
 			label.setHorizontalTextPosition(JLabel.RIGHT);
 			label.setFont(font);
 			return label;

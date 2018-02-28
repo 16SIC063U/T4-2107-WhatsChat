@@ -1,11 +1,8 @@
 package user;
-import java.awt.Canvas;
-import java.awt.EventQueue;
+
 import java.awt.Graphics;
 import java.awt.Image;
-import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -18,32 +15,44 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
 
-public class ProfilePicture extends JPanel  {
+public class ProfilePicture extends JPanel {
 
+	private static final long serialVersionUID = 11L;
 	private String username;
-	private final static String IMAGE_DIRECTORY = "images";
 	private BufferedImage image;
+
+	public ProfilePicture(String username) {
+		this.username = username;
+	}
 
 	/**
 	 * Add profile picture to path
-	 * @return 
+	 * 
+	 * @return
 	 */
-	public boolean selectProfilePic(String username) {
-		//Choose file
+	public boolean selectProfilePic() {
+		// Choose file
 		String filePath = chooseFile();
-		//Create file
-		boolean result = copyFile(new File(filePath), new File(IMAGE_DIRECTORY + "/" + username + ".jpg"));
-		if(result){
-			this.username = username;
-		}
-		return result;
+		// Create file
+		File createdFile = copyFile(new File(filePath),
+				new File(ImageUtil.getUserFolderPath(username) + username + ".jpg"));
+	
+		//Resize image
+		byte[] reducedFileSize = ImageUtil.shrinkImage(createdFile);
+		
+		//Write reduced image to file
+		try (FileOutputStream fos = new FileOutputStream(createdFile)) {
+			   fos.write(reducedFileSize);
+			   fos.close();
+			} catch (IOException e) {
+				System.out.println("error reducing file size");
+				e.printStackTrace();
+			}
+		return createdFile != null;
 	}
 
 	@Override
@@ -51,9 +60,9 @@ public class ProfilePicture extends JPanel  {
 		super.paintComponent(g);
 		g.drawImage(image, 0, 0, this); //
 	}
-	
-	public String getImagePath(){
-		return IMAGE_DIRECTORY + "/" + username + ".jpg";
+
+	public String getImagePath() {
+		return ImageUtil.getUserFolderPath(username) + username + ".jpg";
 	}
 
 	/**
@@ -61,23 +70,20 @@ public class ProfilePicture extends JPanel  {
 	 */
 	private void createDir() {
 		// if the directory does not exist, create it
-		File theDir = new File(IMAGE_DIRECTORY);
+		File theDir = new File(ImageUtil.getUserFolderPath(username));
 		if (!theDir.exists()) {
 			boolean result = false;
 
 			try {
-				theDir.mkdir();
+				theDir.mkdirs();
 				result = true;
 			} catch (SecurityException se) {
 				// handle it
 			}
-			if (result) {
-				System.out.println("DIR created");
-			}
 		}
 	}
 
-	private boolean copyFile(File source, File dest){
+	private File copyFile(File source, File dest) {
 		createDir();
 		try {
 			InputStream is = null;
@@ -96,16 +102,16 @@ public class ProfilePicture extends JPanel  {
 			}
 		} catch (IOException e) {
 			System.out.println("Unable to add image: " + e);
-			return false;
+			return null;
 		}
 		try {
 			image = ImageIO.read(dest);
 		} catch (IOException e) {
 			System.out.println("error adding pic to frame");
 		}
-		return true;
+		return dest;
 	}
-	
+
 	private String chooseFile() {
 		JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
 		FileNameExtensionFilter filter = new FileNameExtensionFilter("Images", "png", "jpg", "jpeg");
@@ -120,21 +126,19 @@ public class ProfilePicture extends JPanel  {
 
 	}
 
-	public File getProfilePic(){
-		return new File(getImagePath()); 
+	public File getProfilePic() {
+		return new File(getImagePath());
 	}
-	
+
 	public ImageIcon getImageIconProfilePic(JComponent lblProfilePic) {
-		Image dimg = image.getScaledInstance(lblProfilePic.getWidth(), lblProfilePic.getHeight(),
-		        Image.SCALE_SMOOTH);
-		
+		Image dimg = image.getScaledInstance(lblProfilePic.getWidth(), lblProfilePic.getHeight(), Image.SCALE_SMOOTH);
+
 		return new ImageIcon(dimg);
 	}
-	
+
 	public ImageIcon getCheckBoxIcon() {
-		Image dimg = image.getScaledInstance(30, 30,
-		        Image.SCALE_SMOOTH);
-		
+		Image dimg = image.getScaledInstance(30, 30, Image.SCALE_SMOOTH);
+
 		return new ImageIcon(dimg);
 	}
 }
