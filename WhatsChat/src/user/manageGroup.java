@@ -176,18 +176,11 @@ public class manageGroup extends JFrame {
                 public void actionPerformed(ActionEvent e) {
                     editedgroupMembers = Collections.list(participantsList.elements());
                     String message="";
-                    DatagramPacket dgp = null;
+                    String groupInput = tbGroupName.getText();
                     for(int i=0; i<editedgroupMembers.size(); i++){
                         if(!groupMembers.contains(editedgroupMembers.get(i))){
                             message = "addMember::"+editedgroupMembers.get(i)+"::"+groupName;
-                            byte[] buf = message.getBytes();
-                            dgp = new DatagramPacket(buf, buf.length, commonGroup, 6789);
-                            try{
-                                commonSocket.send(dgp);
-                            }
-                            catch(IOException ex){
-                                ex.printStackTrace();
-                            }
+                            sendMessage(message);
                         }
                         else{
                             groupMembers.remove(editedgroupMembers.get(i));
@@ -195,14 +188,11 @@ public class manageGroup extends JFrame {
                     }
                     for(int i=0; i<groupMembers.size(); i++){
                         message = "removeMember::"+groupMembers.get(i)+"::"+groupName;
-                        byte[] buf = message.getBytes();
-                        dgp = new DatagramPacket(buf, buf.length, commonGroup, 6789);
-                        try{
-                            commonSocket.send(dgp);
-                        }
-                        catch(IOException ex){
-                            ex.printStackTrace();
-                        }
+                        sendMessage(message);
+                    }
+                    if(!groupName.equals(groupInput)){
+                        message = "updateGroupName::"+groupName+"::"+groupInput;
+                        sendMessage(message);
                     }
                     manageGroup.this.dispose();
                 }
@@ -219,4 +209,15 @@ public class manageGroup extends JFrame {
             btnCancel.setBounds(294, 337, 97, 25);
             contentPane.add(btnCancel);
 	}
+        
+        public void sendMessage(String message){
+            byte[] buf = message.getBytes();
+            DatagramPacket dgp = new DatagramPacket(buf, buf.length, commonGroup, 6789);
+            try{
+                commonSocket.send(dgp);
+            }
+            catch(IOException ex){
+                ex.printStackTrace();
+            }
+        }
 }

@@ -29,9 +29,11 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.swing.AbstractButton;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
@@ -110,28 +112,33 @@ public class WhatsChat extends javax.swing.JFrame {
 							// TODO: Listen to broadcast
 							String[] msgArray = msg.split("::");
 							String action = msgArray[0], parameter = msgArray[1];
+                                                        
 							if (action.equals("getUser") && !(username.isEmpty())) {
 								String sendUserMessage = "sendUser::" + username;
 								commonSocket.send(generateMessage(sendUserMessage, commonGroup));
-							} else if (action.equals("getUserImage") && !(userImageMapList.isEmpty())) {
-								for (UserImageMap userImageMap : userImageMapList) {
-									String sendUserImageMessage = "sendUserImage::" + userImageMap.getByteMessage();
-									commonSocket.send(generateMessage(sendUserImageMessage, commonGroup));
-								}
-							} else if (action.equals("getGroup") && !(groupList.isEmpty())) {
-								String sendGroupMessage = "";
-								for (String group : groupList.keySet()) {
-									sendGroupMessage = "sendGroup::" + group + "::" + groupList.get(group);
-									commonSocket.send(generateMessage(sendGroupMessage, commonGroup));
-								}
-							} else if (action.equals("sendUser")) {
+							}
+                                                        
+                                                        else if (action.equals("sendUser")) {
 								if (!(usernameList.contains(parameter))) {
 									usernameList.add(parameter);
 									// TODO added by edwin
 									lvd.addUsername(parameter);
 								}
-								updateUserList();
-							} else if (action.equals("sendUserImage")) {
+							}
+                                                        
+                                                        else if (action.equals("removeUser")) {
+                                                                usernameList.remove(parameter);
+                                                                lvd.removeUsername(parameter);
+                                                        }
+                                                        
+                                                        else if (action.equals("getUserImage") && !(userImageMapList.isEmpty())) {
+								for (UserImageMap userImageMap : userImageMapList) {
+									String sendUserImageMessage = "sendUserImage::" + userImageMap.getByteMessage();
+									commonSocket.send(generateMessage(sendUserImageMessage, commonGroup));
+								}
+							}
+                                                        
+                                                        else if (action.equals("sendUserImage")) {
 								UserImageMap map = new UserImageMap(parameter.getBytes());
 
 								boolean isInList = false;
@@ -147,25 +154,25 @@ public class WhatsChat extends javax.swing.JFrame {
 								for (UserImageMap u : userImageMapList) {
 									System.out.println("UN: " + u.getUsername());
 								}
-							} else if (action.equals("sendGroup")) {
+							}
+                                                        
+                                                        else if (action.equals("getGroup") && !(groupList.isEmpty())) {
+								String sendGroupMessage = "";
+								for (String group : groupList.keySet()) {
+									sendGroupMessage = "sendGroup::" + group + "::" + groupList.get(group);
+									commonSocket.send(generateMessage(sendGroupMessage, commonGroup));
+								}
+							}
+                                                        
+                                                        else if (action.equals("sendGroup")) {
 								if (!(groupList.containsKey(parameter))) {
 									String detail = msgArray[2];
 									groupList.put(parameter, detail);
 								}
-							} else if (action.equals("inviteUser")) {
-								if (parameter.equals(username)) {
-									joinedGroupList.put(msgArray[2], msgArray[3]);
-									joinedGroupMembers.put(msgArray[2], new ArrayList<>());
-									updateGroupMembers(msgArray[2]);
-									System.out.println("1. Invite user");
-									joinGroup(msgArray[3]);
-                                                                        activeGroup = msgArray[2];
-									updateGroupList();
-									updateConversation();
-								}
-							} else if (action.equals("removeGroup")) {
+							}
+                                                        
+                                                        else if (action.equals("removeGroup")) {
 								// TODO remove group done by edwin
-								System.out.println("removeGroup:: " + parameter);
 								if (groupList.containsKey(parameter)) {
 									groupList.remove(parameter);
 									String ipAddr = joinedGroupList.get(parameter);
@@ -173,44 +180,87 @@ public class WhatsChat extends javax.swing.JFrame {
 									joinedGroupChats.remove(ipAddr);
 									joinedGroupMembers.remove(parameter);
 									updateGroupList();
+                                                                        updateMemberList();
 									updateConversation();
 								}
-							} else if (action.equals("removeUser")) {
-								if (usernameList.contains(parameter)) {
-									usernameList.remove(parameter);
+							}
+                                                        
+                                                        else if (action.equals("updateGroupName")){
+                                                            int ip = parameter.hashCode();
+                                                            String ipStr = String.format("230.1.%d.%d", (ip & 0xff), (ip >> 8 & 0xff));
+                                                            if(groupList.containsKey(parameter)){
+                                                                groupList.put(msgArray[2], groupList.get(parameter));
+                                                                groupList.remove(parameter);
+                                                            }
+                                                            if(joinedGroupList.containsKey(parameter)){
+                                                                joinedGroupList.put(msgArray[2], joinedGroupList.get(parameter));
+                                                                joinedGroupList.remove(parameter);
+                                                            }
+                                                            if(joinedGroupMembers.containsKey(parameter)){
+                                                                joinedGroupMembers.put(msgArray[2], joinedGroupMembers.get(parameter));
+                                                                joinedGroupMembers.remove(parameter);
+                                                            }
+                                                            if(joinedGroupChats.containsKey(ipStr)){
+                                                                int newIp = msgArray[2].hashCode();
+                                                                String newIpStr = String.format("230.1.%d.%d", (ip & 0xff), (ip >> 8 & 0xff));
+                                                                joinedGroupChats.put(newIpStr, joinedGroupChats.get(ipStr));
+                                                                joinedGroupChats.remove(ipStr);
+                                                            }
+                                                            activeGroup = msgArray[2];
+                                                            updateGroupList();
+                                                        }
+                                                        
+                                                        else if (action.equals("inviteUser")) {
+								if (parameter.equals(username)) {
+									joinedGroupList.put(msgArray[2], msgArray[3]);
+									joinedGroupMembers.put(msgArray[2], new ArrayList<>());
+									updateGroupMembers(msgArray[2]);
+									//System.out.println("1. Invite user");
+									joinGroup(msgArray[3]);
+                                                                        activeGroup = msgArray[2];
+									updateGroupList();
+									updateConversation();
 								}
-								updateUserList();
-							} else if (action.equals("getMembers")) {
+							}
+                                                        
+                                                        else if (action.equals("getMembers")) {
 								if (joinedGroupList.containsKey(parameter)) {
 									String sendMemberMessage = "sendMember::" + parameter + "::" + username;
 									commonSocket.send(generateMessage(sendMemberMessage, commonGroup));
 								}
-							} else if (action.equals("sendMember")) {
+							}
+                                                        
+                                                        else if (action.equals("sendMember")) {
 								if (joinedGroupList.containsKey(parameter)) {
 									List<String> members = joinedGroupMembers.get(parameter);
 									if (!members.contains(msgArray[2])) {
 										members.add(msgArray[2]);
 										joinedGroupMembers.put(parameter, members);
 									}
+                                                                        updateMemberList();
 								}
-							} else if (action.equals("addMember")) {
+							}
+                                                        
+                                                        else if (action.equals("addMember")) {
 								int ip = msgArray[2].hashCode();
 								String ipStr = String.format("230.1.%d.%d", (ip & 0xff), (ip >> 8 & 0xff));
-								if (joinedGroupChats.containsKey(ipStr)) {
-									System.out.println("addMember " + ipStr);
-									String sendChats = "sendChats::" + msgArray[2] + "::" + joinedGroupChats.get(ipStr);
-									commonSocket.send(generateMessage(sendChats, commonGroup));
-								}
+                                                                if (joinedGroupChats.containsKey(ipStr)) {
+                                                                            String sendChats = "sendChats::" + msgArray[2] + "::" + joinedGroupChats.get(ipStr);
+                                                                            commonSocket.send(generateMessage(sendChats, commonGroup));
+                                                                        }
 								if (username.equals(parameter)) {
 									joinedGroupList.put(msgArray[2], ipStr);
 									joinedGroupMembers.put(msgArray[2], new ArrayList<>());
+                                                                        activeGroup = msgArray[2];
 									updateGroupMembers(msgArray[2]);
-									System.out.println("username join group");
+									//System.out.println("username join group");
 									joinGroup(ipStr);
 									updateGroupList();
 									updateConversation();
 								}
-							} else if (action.equals("removeMember")) {
+							}
+                                                        
+                                                        else if (action.equals("removeMember")) {
 								if (username.equals(parameter)) {
 									joinedGroupList.remove(msgArray[2]);
 									joinedGroupMembers.remove(msgArray[2]);
@@ -223,8 +273,11 @@ public class WhatsChat extends javax.swing.JFrame {
 									joinedGroupMembers.put(msgArray[2], members);
 									updateGroupList();
 									updateConversation();
+                                                                        updateMemberList();
 								}
-							} else if (action.equals("sendChats")) {
+							}
+                                                        
+                                                        else if (action.equals("sendChats")) {
 								int ip = parameter.hashCode();
 								String ipStr = String.format("230.1.%d.%d", (ip & 0xff), (ip >> 8 & 0xff));
 								if (joinedGroupList.containsKey(parameter)) {
@@ -253,7 +306,7 @@ public class WhatsChat extends javax.swing.JFrame {
 			String getGroupMessage = "getGroup:: ";
 			commonSocket.send(generateMessage(getGroupMessage, commonGroup));
 			String getUserImageMessage = "getUserImage:: ";
-			commonSocket.send(generateMessage(getUserMessage, commonGroup));
+			commonSocket.send(generateMessage(getUserImageMessage, commonGroup));
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
@@ -670,11 +723,13 @@ public class WhatsChat extends javax.swing.JFrame {
             multicastSocket.send(generateMessage("leaveGroup::"+activeGroup+"::"+username, multicastGroup));
             String ipAddr = joinedGroupList.get(activeGroup);
             joinedGroupChats.remove(ipAddr);
-            joinedGroupList.remove(activeGroup);
             if(joinedGroupMembers.get(activeGroup).size() == 1){
                 String message = "removeGroup::" + activeGroup;
                 commonSocket.send(generateMessage(message, commonGroup));
             }
+            joinedGroupList.remove(activeGroup);
+            textSelectedGroup.setText("None.");
+            updateMemberList();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -744,6 +799,7 @@ public class WhatsChat extends javax.swing.JFrame {
 		// TODO add your handling code here:
 		if (!(panelUser.getComponent(0).isVisible())) {
 			JCheckBox userCB;
+                        panelUserCheckbox.removeAll();
 			for (String user : usernameList) {
 				userCB = new JCheckBox(user);
 				userCB.setName(user);
@@ -783,6 +839,11 @@ public class WhatsChat extends javax.swing.JFrame {
 							String inviteMessage = "inviteUser::" + checkedUser + "::" + groupInput + "::" + ipStr;
 							commonSocket.send(generateMessage(inviteMessage, commonGroup));
 						}
+                                                ((CardLayout) panelUser.getLayout()).show(panelUser, "LIST");
+                                                textGroup.setText("");
+                                                btnCreate.setText("Create");
+                                                btnCancel.setVisible(false);
+                                                btnCancel.setEnabled(false);
 					} catch (IOException ex) {
 						ex.printStackTrace();
 					}
@@ -795,10 +856,11 @@ public class WhatsChat extends javax.swing.JFrame {
 
 	private void btnEditMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_btnEditMouseClicked
 		// TODO add your handling code here:
+                labelEditGroupError.setText("");
 		String groupInput = textSelectedGroup.getText();
 		if (groupInput != null && joinedGroupList.containsKey(groupInput)) {
 			manageGroup newFrame = new manageGroup();
-			newFrame.setGroupName(textGroup.getText());
+			newFrame.setGroupName(activeGroup);
 			newFrame.setUsers(usernameList, joinedGroupMembers.get(groupInput));
 			newFrame.setVisible(true);
 			// TODO: set the list
@@ -819,6 +881,7 @@ public class WhatsChat extends javax.swing.JFrame {
                     String message = "removeGroup::" + activeGroup;
                     commonSocket.send(generateMessage(message, commonGroup));
                     activeGroup = "";
+                    textSelectedGroup.setText("None.");
                 } catch (IOException e) {
                     System.out.println("Delete group error: " + e);
                     e.printStackTrace();
@@ -832,20 +895,30 @@ public class WhatsChat extends javax.swing.JFrame {
 
 	private void formWindowClosing(java.awt.event.WindowEvent evt) {// GEN-FIRST:event_formWindowClosing
 		// TODO add your handling code here:
-		if (!username.isEmpty()) {
-			try {
-				String getUserMessage = "removeUser::" + username;
-				commonSocket.send(generateMessage(getUserMessage, commonGroup));
-			} catch (IOException ex) {
-				ex.printStackTrace();
-			}
-		}
+                try{
+                    for(String group : joinedGroupList.keySet()){
+                        activeGroup = group;
+                        multicastSocket.send(generateMessage("leaveGroup::"+group+"::"+username, getActiveInet()));
+                        if(joinedGroupMembers.get(group) != null && joinedGroupMembers.get(group).size() == 1){
+                            String message = "removeGroup::" + group;
+                            commonSocket.send(generateMessage(message, commonGroup));
+                        }
+                    }
+                    if (!username.isEmpty()) {
+                        String getUserMessage = "removeUser::" + username;
+                        commonSocket.send(generateMessage(getUserMessage, commonGroup));
+                    }
+                }
+                catch (IOException ex) {
+                        ex.printStackTrace();
+                }
 	}// GEN-LAST:event_formWindowClosing
 
 	private void btnCancelMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_btnCancelMouseClicked
 		// TODO add your handling code here:
 		((CardLayout) panelUser.getLayout()).show(panelUser, "LIST");
 		panelUserCheckbox.removeAll();
+                labelGroupError.setText("");
 		btnCreate.setText("Create");
 		btnCancel.setVisible(false);
 		btnCancel.setEnabled(false);
@@ -946,16 +1019,18 @@ public class WhatsChat extends javax.swing.JFrame {
 		}
 	}
 
-	public void updateUserList() {
-		String userList = "";
-		for (String user : usernameList) {
-			userList += user + "\n";
-		}
-		listUser.setText(userList);
+	public void updateMemberList() {
+            String memberList = "";
+            if(!activeGroup.isEmpty()){
+                for (String member : joinedGroupMembers.get(activeGroup)) {
+                    memberList += member + "\n";
+                }
+            }
+            listUser.setText(memberList);
+            listUser.revalidate();
 	}
 
 	public void updateGroupList() {
-            System.out.println("AG : "+activeGroup);
 		List<String> groups = new ArrayList<String>(joinedGroupList.keySet());
 		String groupNameList = "";
 		JRadioButton button;
@@ -979,12 +1054,12 @@ public class WhatsChat extends javax.swing.JFrame {
 				}
 			});
 			button.setVisible(true);
-			buttonGroup.add(button);
+			buttonGroup.add(button);                    
 			groupPane.add(button);
 		}
-		panelGroup.add(scrollGroup);
-		panelGroup.repaint();
+                panelGroup.add(scrollGroup);
 		panelGroup.revalidate();
+		panelGroup.repaint();
 	}
 
 	public DatagramPacket generateMessage(String message, InetAddress group) {
@@ -1028,7 +1103,7 @@ public class WhatsChat extends javax.swing.JFrame {
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
-					System.out.println("Start run");
+					//System.out.println("Start run");
 					byte buf1[] = new byte[1000];
 					DatagramPacket dgpReceived = new DatagramPacket(buf1, buf1.length);
 					while (true) {
@@ -1045,7 +1120,7 @@ public class WhatsChat extends javax.swing.JFrame {
 							byte[] receivedData = dgpReceived.getData();
 							int length = dgpReceived.getLength();
 							String msg = new String(receivedData, 0, length);
-							System.out.println("Received joingroup packet: " + msg);
+							//System.out.println("Received joingroup packet: " + msg);
                                                         String subString = "";
                                                         if(msg.length() > 11){
                                                             subString = msg.substring(0, 10);
@@ -1061,22 +1136,18 @@ public class WhatsChat extends javax.swing.JFrame {
                                                             List<String> members = joinedGroupMembers.get(msgArray[1]);
                                                             if(members.size() > 0){
                                                                 members.remove(msgArray[2]);
-                                                                System.out.println(members.toString());
                                                                 joinedGroupMembers.put(msgArray[1], members);
                                                                 if(!msgArray[2].equals(username)){
                                                                     String message = msgArray[2] + " has left the group...";
-                                                                    if (joinedGroupChats.get(ipStr) != null) {
-                                                                        String previousChats = joinedGroupChats.get(ipStr);
-                                                                        joinedGroupChats.put(ipStr, previousChats + "\n" + message);
-                                                                    } else {
-                                                                        joinedGroupChats.put(ipStr, message);
-                                                                    }
+                                                                    String previousChats = joinedGroupChats.get(ipStr);
+                                                                    joinedGroupChats.put(ipStr, previousChats + "\n" + message);
                                                                 }
                                                                 else{
                                                                     activeGroup="";
                                                                 }
                                                                 updateConversation();
                                                                 updateGroupList();
+                                                                updateMemberList();
                                                             }
                                                         }
                                                         else{
@@ -1092,6 +1163,7 @@ public class WhatsChat extends javax.swing.JFrame {
                                                                 joinedGroupChats.put(ipStr, msg);
                                                             }
                                                             updateConversation();
+                                                            updateMemberList();
                                                         }
 							
 
@@ -1104,7 +1176,7 @@ public class WhatsChat extends javax.swing.JFrame {
 				}
 			}).start();
 			String message = username + " joined " + ipStr;
-			System.out.println("join group");
+			//System.out.println("join group");
 			multicastSocket.send(generateMessage(message, multicastGroup));
 		} catch (IOException ex) {
 			ex.printStackTrace();

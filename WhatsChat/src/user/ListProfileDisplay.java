@@ -27,6 +27,9 @@ public class ListProfileDisplay {
 	public void addUsername(String username) {
 		model.addElement(username);
 	}
+        public void removeUsername(String username) {
+		model.removeElement(username);
+	}
 
 	public JList getJList() {
 		return list;
