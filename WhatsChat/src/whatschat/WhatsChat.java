@@ -396,33 +396,6 @@ public class WhatsChat extends javax.swing.JFrame {
 		btnAddPicture = new javax.swing.JButton();
 		btnAddPicture.setEnabled(false);
 
-		textRegister.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					registerName();
-				}
-			}
-		});
-
-		textGroup.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					createGroup();
-				}
-			}
-		});
-
-		textMessage.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					sendChatMessage();
-				}
-			}
-		});
-
 		setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 		addWindowListener(new java.awt.event.WindowAdapter() {
 			public void windowClosing(java.awt.event.WindowEvent evt) {
@@ -878,6 +851,7 @@ public class WhatsChat extends javax.swing.JFrame {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					System.out.println("enter click");
 					createGroup();
 				}
 			}
@@ -895,7 +869,7 @@ public class WhatsChat extends javax.swing.JFrame {
 	}
 
 	private void btnCreateMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_btnCreateMouseClicked
-		// TODO add your handling code here:
+		System.out.println("button click");
 		createGroup();
 	}// GEN-LAST:event_btnCreateMouseClicked
 
@@ -1031,6 +1005,7 @@ public class WhatsChat extends javax.swing.JFrame {
 	}
 
 	public void createGroup() {
+		System.out.println("createa group");
 		if (!(panelUser.getComponent(0).isVisible())) {
 			JCheckBox userCB;
 			panelUserCheckbox.removeAll();
