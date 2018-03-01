@@ -39,6 +39,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.text.MutableAttributeSet;
 
 import user.ImageUtil;
 import user.ListProfileDisplay;
@@ -107,13 +108,13 @@ public class WhatsChat extends javax.swing.JFrame {
 	Map<String, String> joinedGroupChats = new HashMap<String, String>();
 	Map<String, List<String>> joinedGroupMembers = new HashMap<String, List<String>>();
 	ListProfileDisplay lvd = new ListProfileDisplay(this);
-	MulticastSocket multicastSocket = null;
-	InetAddress multicastGroup = null;
+
 	public static String username = "";
 	String activeGroup = "";
 	public List<UserProfile> userProfileList = new ArrayList<>();
 
 	private MulticastCommon commonAddress;
+	private MulticastBroadcast broadcast;
 
 	/**
 	 * Creates new form WhatsChat
@@ -122,6 +123,7 @@ public class WhatsChat extends javax.swing.JFrame {
 		initComponents();
 		postInitComponent();
 		commonAddress = new MulticastCommon(this);
+		broadcast = new MulticastBroadcast(this);
 	}
 
 	/**
@@ -544,20 +546,16 @@ public class WhatsChat extends javax.swing.JFrame {
 		}
 		// TODO delete here
 		// Remove active group
-		try {
-			multicastSocket.send(generateMessage("leaveGroup::" + activeGroup + "::" + username, multicastGroup));
-			String ipAddr = joinedGroupList.get(activeGroup);
-			joinedGroupChats.remove(ipAddr);
-			if (joinedGroupMembers.get(activeGroup).size() == 1) {
-				String message = "removeGroup::" + activeGroup;
-				commonAddress.sendMessage(message);
-			}
-			joinedGroupList.remove(activeGroup);
-			textSelectedGroup.setText("None.");
-			updateMemberList();
-		} catch (IOException e) {
-			e.printStackTrace();
+		broadcast.sendMessage("leaveGroup::" + activeGroup + "::" + username, broadcast.getMulticastGroup());
+		String ipAddr = joinedGroupList.get(activeGroup);
+		joinedGroupChats.remove(ipAddr);
+		if (joinedGroupMembers.get(activeGroup).size() == 1) {
+			String message = "removeGroup::" + activeGroup;
+			commonAddress.sendMessage(message);
 		}
+		joinedGroupList.remove(activeGroup);
+		textSelectedGroup.setText("None.");
+		updateMemberList();
 	}// GEN-LAST:event_btnLeaveMouseClicked
 
 	private void btnAddPictureMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_btnAddPictureMouseClicked
@@ -661,16 +659,11 @@ public class WhatsChat extends javax.swing.JFrame {
 		if (activeGroup.isEmpty()) {
 			return;
 		}
-		try {
-			multicastSocket.send(generateMessage("removeGroup", multicastGroup));
-			String message = "removeGroup::" + activeGroup;
-			commonAddress.sendMessage(message);
-			activeGroup = "";
-			textSelectedGroup.setText("None.");
-		} catch (IOException e) {
-			System.out.println("Delete group error: " + e);
-			e.printStackTrace();
-		}
+		broadcast.sendMessage("removeGroup", broadcast.getMulticastGroup());
+		String message = "removeGroup::" + activeGroup;
+		commonAddress.sendMessage(message);
+		activeGroup = "";
+		textSelectedGroup.setText("None.");
 	}// GEN-LAST:event_btnDeleteMouseClicked
 
 	private void btnSendMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_btnSendMouseClicked
@@ -680,24 +673,20 @@ public class WhatsChat extends javax.swing.JFrame {
 
 	private void formWindowClosing(java.awt.event.WindowEvent evt) {// GEN-FIRST:event_formWindowClosing
 		// TODO add your handling code here:
-		try {
-			for (String group : joinedGroupList.keySet()) {
-				activeGroup = group;
-				multicastSocket.send(generateMessage("leaveGroup::" + group + "::" + username, getActiveInet()));
-				if (joinedGroupMembers.get(group) != null && joinedGroupMembers.get(group).size() == 1) {
-					String message = "removeGroup::" + group;
-					commonAddress.sendMessage(message);
-				}
+		for (String group : joinedGroupList.keySet()) {
+			activeGroup = group;
+			broadcast.sendMessage("leaveGroup::" + group + "::" + username, getActiveInet());
+			if (joinedGroupMembers.get(group) != null && joinedGroupMembers.get(group).size() == 1) {
+				String message = "removeGroup::" + group;
+				commonAddress.sendMessage(message);
 			}
-			if (!username.isEmpty()) {
-				String getUserMessage = "removeUser::" + username;
-				commonAddress.sendMessage(getUserMessage);
-			}
-			// Clear user and its associated images
-			ImageUtil.deleteUserFolder(username);
-		} catch (IOException ex) {
-			ex.printStackTrace();
 		}
+		if (!username.isEmpty()) {
+			String getUserMessage = "removeUser::" + username;
+			commonAddress.sendMessage(getUserMessage);
+		}
+		// Clear user and its associated images
+		ImageUtil.deleteUserFolder(username);
 	}// GEN-LAST:event_formWindowClosing
 
 	private void btnCancelMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_btnCancelMouseClicked
@@ -757,11 +746,7 @@ public class WhatsChat extends javax.swing.JFrame {
 			// TODO: Send Message
 			String message = username + " : " + messageInput;
 			if (activeGroup != "") {
-				try {
-					multicastSocket.send(generateMessage(message, getActiveInet()));
-				} catch (IOException ex) {
-					ex.printStackTrace();
-				}
+				broadcast.sendMessage(message, getActiveInet());
 				textMessage.setText("");
 			} else {
 				labelMessageError.setText(" No active group to send message !");
@@ -916,12 +901,6 @@ public class WhatsChat extends javax.swing.JFrame {
 		panelGroup.repaint();
 	}
 
-	public DatagramPacket generateMessage(String message, InetAddress group) {
-		byte[] buf = message.getBytes();
-		DatagramPacket dgp = new DatagramPacket(buf, buf.length, group, portNo);
-		return dgp;
-	}
-
 	public InetAddress getActiveInet() {
 		try {
 			return InetAddress.getByName(joinedGroupList.get(activeGroup));
@@ -944,86 +923,7 @@ public class WhatsChat extends javax.swing.JFrame {
 	// private Lock lock = new Lock();
 	// TODO THREADNOT CLOSED PROPERLY WHEN CLOSING GROUP
 	public void joinGroup(String ipStr) {
-		try {
-
-			multicastGroup = InetAddress.getByName(ipStr);
-			multicastSocket = new MulticastSocket(portNo);
-			multicastSocket.setReceiveBufferSize(65507);
-			multicastSocket.joinGroup(multicastGroup);
-			// Create a new thread to keep listening for packets from the group
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					// System.out.println("Start run");
-					byte buf1[] = new byte[65507];
-					DatagramPacket dgpReceived = new DatagramPacket(buf1, buf1.length);
-					while (true) {
-						try {
-							multicastSocket.receive(dgpReceived);
-							byte[] receivedData = dgpReceived.getData();
-							int length = dgpReceived.getLength();
-							String msg = new String(receivedData, 0, length);
-							// System.out.println("Received joingroup packet: "
-							// + msg);
-							String subString = "";
-							if (msg.length() > 11) {
-								subString = msg.substring(0, 10);
-							}
-							if (msg.equals("removeGroup")) {
-								// Stop current thread
-								// System.out.println("Stop thread: " +
-								// Thread.currentThread().getId());
-								Thread.currentThread().interrupt();
-								// System.out.println("Thread after stopping: "
-								// +
-								// Thread.currentThread().getId());
-							} else if (subString.equals("leaveGroup")) {
-								String[] msgArray = msg.split("::");
-								List<String> members = joinedGroupMembers.get(msgArray[1]);
-								if (members.size() > 0) {
-									members.remove(msgArray[2]);
-									joinedGroupMembers.put(msgArray[1], members);
-									if (!msgArray[2].equals(username)) {
-										String message = msgArray[2] + " has left the group...";
-										String previousChats = joinedGroupChats.get(ipStr);
-										joinedGroupChats.put(ipStr, previousChats + "\n" + message);
-									} else {
-										activeGroup = "";
-									}
-									updateConversation();
-									updateGroupList();
-									updateMemberList();
-								}
-							} else {
-								if (joinedGroupChats.get(ipStr) != null) {
-									String[] chats = joinedGroupChats.get(ipStr).split("\n");
-									if (!chats[chats.length - 1].equals(msg)) {
-										String previousChats = joinedGroupChats.get(ipStr);
-										joinedGroupChats.put(ipStr, previousChats + "\n" + msg);
-									} else {
-										joinedGroupChats.put(ipStr, msg);
-									}
-								} else {
-									joinedGroupChats.put(ipStr, msg);
-								}
-								updateConversation();
-								updateMemberList();
-							}
-
-							// lock.unlock();
-						} catch (IOException ex) {
-							System.out.println("thread run ex: " + ex);
-							ex.printStackTrace();
-						}
-					}
-				}
-			}).start();
-			String message = username + " joined " + ipStr;
-			// System.out.println("join group");
-			multicastSocket.send(generateMessage(message, multicastGroup));
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		}
+		broadcast.joinGroup(ipStr);
 	}
 
 	public void showUserProfile(String usernameClicked) {
