@@ -21,8 +21,10 @@ public class ListProfileDisplay {
 
 	private DefaultListModel<String> model = new DefaultListModel<String>();
 	private JList<String> list;
+	private WhatsChat whatsChat;
 
 	public ListProfileDisplay(WhatsChat whatsChat) {
+		this.whatsChat = whatsChat;
 		list = new JList<String>(model);
 		list.setCellRenderer(new ProfileRenderer());
 		list.addMouseListener(new MouseAdapter() {
@@ -66,22 +68,27 @@ public class ListProfileDisplay {
 
 			JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 			// Get file from images
+			File file;
 			try {
-				File file = new File(ImageUtil.getUserFolderPath(model.get(index)) + model.get(index) + ".jpg");
+				file = new File(whatsChat.userProfileList.get(index).getUserImagePath());
 				if (!file.exists()) {
 					file = new File("no_img.png");
 				}
-				BufferedImage image;
-				image = ImageIO.read(file);
+			} catch (IndexOutOfBoundsException e) {
+				// TODO Auto-generated catch block
+//				e.printStackTrace();
+				file = new File("no_img.png");
+			}
+			try {
+				BufferedImage image = ImageIO.read(file);
 				Image dimg = image.getScaledInstance(30, 30, Image.SCALE_SMOOTH);
 				label.setIcon(new ImageIcon(dimg));
+				label.setHorizontalTextPosition(JLabel.RIGHT);
+				label.setFont(font);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-
-			label.setHorizontalTextPosition(JLabel.RIGHT);
-			label.setFont(font);
 			return label;
 		}
 
