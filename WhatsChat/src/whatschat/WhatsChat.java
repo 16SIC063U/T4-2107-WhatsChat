@@ -10,6 +10,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -334,6 +336,33 @@ public class WhatsChat extends javax.swing.JFrame {
 		jPanel7 = new javax.swing.JPanel();
 		btnAddPicture = new javax.swing.JButton();
 		btnAddPicture.setVisible(false);
+		
+		textRegister.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode()==KeyEvent.VK_ENTER){
+		            registerName();
+		        }
+			}
+		});
+		
+		textGroup.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode()==KeyEvent.VK_ENTER){
+		            createGroup();
+		        }
+			}
+		});
+		
+		textMessage.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode()==KeyEvent.VK_ENTER){
+		            sendChatMessage();
+		        }
+			}
+		});
 
 		setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 		addWindowListener(new java.awt.event.WindowAdapter() {
@@ -748,61 +777,7 @@ public class WhatsChat extends javax.swing.JFrame {
 
 	private void btnCreateMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_btnCreateMouseClicked
 		// TODO add your handling code here:
-		if (!(panelUser.getComponent(0).isVisible())) {
-			JCheckBox userCB;
-			panelUserCheckbox.removeAll();
-			for (String user : usernameList) {
-				userCB = new JCheckBox(user);
-				userCB.setName(user);
-				panelUserCheckbox.add(userCB);
-			}
-			panelUserCheckbox.setAlignmentY(JComponent.LEFT_ALIGNMENT);
-			((CardLayout) panelUser.getLayout()).show(panelUser, "CHECK");
-			btnCreate.setText("Save");
-			btnCancel.setVisible(true);
-			btnCancel.setEnabled(true);
-		} else {
-			String groupInput = textGroup.getText();
-			List<String> checkedUsers = new ArrayList<String>();
-			for (Component userCB : panelUserCheckbox.getComponents()) {
-				if (((JCheckBox) userCB).isSelected()) {
-					checkedUsers.add(userCB.getName());
-				}
-			}
-			labelGroupError.setText("");
-			if (groupInput.isEmpty()) {
-				labelGroupError.setText(" Group name cannot be empty !");
-			} else if (checkedUsers.isEmpty()) {
-				labelGroupError.setText(" None of the users invited !");
-			} else {
-				int ip = groupInput.hashCode();
-				// Limiting the first two group of IP Address to 230.1 for
-				// usable Multicast address
-				String ipStr = String.format("230.1.%d.%d", (ip & 0xff), (ip >> 8 & 0xff));
-				if (!groupList.containsKey(groupInput)) {
-					try {
-						String createMessage = "sendGroup::" + groupInput + "::" + ipStr;
-						commonSocket.send(generateMessage(createMessage, commonGroup));
-						joinedGroupList.put(groupInput, ipStr);
-						groupList.put(groupInput, ipStr);
-						activeGroup = groupInput;
-						for (String checkedUser : checkedUsers) {
-							String inviteMessage = "inviteUser::" + checkedUser + "::" + groupInput + "::" + ipStr;
-							commonSocket.send(generateMessage(inviteMessage, commonGroup));
-						}
-						((CardLayout) panelUser.getLayout()).show(panelUser, "LIST");
-						textGroup.setText("");
-						btnCreate.setText("Create");
-						btnCancel.setVisible(false);
-						btnCancel.setEnabled(false);
-					} catch (IOException ex) {
-						ex.printStackTrace();
-					}
-				} else {
-					labelGroupError.setText(" Group already exist !");
-				}
-			}
-		}
+		createGroup();
 	}// GEN-LAST:event_btnCreateMouseClicked
 
 	private void btnEditMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_btnEditMouseClicked
@@ -933,6 +908,64 @@ public class WhatsChat extends javax.swing.JFrame {
 			}
 		} else {
 			labelMessageError.setText(" Cannot send empty message !");
+		}
+	}
+	
+	public void createGroup(){
+		if (!(panelUser.getComponent(0).isVisible())) {
+			JCheckBox userCB;
+			panelUserCheckbox.removeAll();
+			for (String user : usernameList) {
+				userCB = new JCheckBox(user);
+				userCB.setName(user);
+				panelUserCheckbox.add(userCB);
+			}
+			panelUserCheckbox.setAlignmentY(JComponent.LEFT_ALIGNMENT);
+			((CardLayout) panelUser.getLayout()).show(panelUser, "CHECK");
+			btnCreate.setText("Save");
+			btnCancel.setVisible(true);
+			btnCancel.setEnabled(true);
+		} else {
+			String groupInput = textGroup.getText();
+			List<String> checkedUsers = new ArrayList<String>();
+			for (Component userCB : panelUserCheckbox.getComponents()) {
+				if (((JCheckBox) userCB).isSelected()) {
+					checkedUsers.add(userCB.getName());
+				}
+			}
+			labelGroupError.setText("");
+			if (groupInput.isEmpty()) {
+				labelGroupError.setText(" Group name cannot be empty !");
+			} else if (checkedUsers.isEmpty()) {
+				labelGroupError.setText(" None of the users invited !");
+			} else {
+				int ip = groupInput.hashCode();
+				// Limiting the first two group of IP Address to 230.1 for
+				// usable Multicast address
+				String ipStr = String.format("230.1.%d.%d", (ip & 0xff), (ip >> 8 & 0xff));
+				if (!groupList.containsKey(groupInput)) {
+					try {
+						String createMessage = "sendGroup::" + groupInput + "::" + ipStr;
+						commonSocket.send(generateMessage(createMessage, commonGroup));
+						joinedGroupList.put(groupInput, ipStr);
+						groupList.put(groupInput, ipStr);
+						activeGroup = groupInput;
+						for (String checkedUser : checkedUsers) {
+							String inviteMessage = "inviteUser::" + checkedUser + "::" + groupInput + "::" + ipStr;
+							commonSocket.send(generateMessage(inviteMessage, commonGroup));
+						}
+						((CardLayout) panelUser.getLayout()).show(panelUser, "LIST");
+						textGroup.setText("");
+						btnCreate.setText("Create");
+						btnCancel.setVisible(false);
+						btnCancel.setEnabled(false);
+					} catch (IOException ex) {
+						ex.printStackTrace();
+					}
+				} else {
+					labelGroupError.setText(" Group already exist !");
+				}
+			}
 		}
 	}
 
