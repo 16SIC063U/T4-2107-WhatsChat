@@ -45,7 +45,7 @@ import user.ImageUtil;
 import user.ListProfileDisplay;
 import user.ProfilePicture;
 import user.UserProfile;
-import user.manageGroup;
+import user.ManageGroup;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -115,6 +115,7 @@ public class WhatsChat extends javax.swing.JFrame {
 
 	private MulticastCommon commonAddress;
 	private MulticastBroadcast broadcast;
+	private ManageGroup frame;
 
 	/**
 	 * Creates new form WhatsChat
@@ -124,6 +125,7 @@ public class WhatsChat extends javax.swing.JFrame {
 		postInitComponent();
 		commonAddress = new MulticastCommon(this);
 		broadcast = new MulticastBroadcast(this);
+
 	}
 
 	/**
@@ -633,7 +635,6 @@ public class WhatsChat extends javax.swing.JFrame {
 	}
 
 	private void btnCreateMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_btnCreateMouseClicked
-		System.out.println("button click");
 		createGroup();
 	}// GEN-LAST:event_btnCreateMouseClicked
 
@@ -642,7 +643,7 @@ public class WhatsChat extends javax.swing.JFrame {
 		labelEditGroupError.setText("");
 		String groupInput = textSelectedGroup.getText();
 		if (groupInput != null && joinedGroupList.containsKey(groupInput)) {
-			manageGroup newFrame = new manageGroup();
+			ManageGroup newFrame = new ManageGroup();
 			newFrame.setGroupName(activeGroup);
 			newFrame.setUsers(usernameList, joinedGroupMembers.get(groupInput));
 			newFrame.setVisible(true);
@@ -757,7 +758,6 @@ public class WhatsChat extends javax.swing.JFrame {
 	}
 
 	public void createGroup() {
-		System.out.println("createa group");
 		if (!(panelUser.getComponent(0).isVisible())) {
 			JCheckBox userCB;
 			panelUserCheckbox.removeAll();

@@ -20,7 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import javax.swing.JTextField;
 
-public class manageGroup extends JFrame {
+public class ManageGroup extends JFrame {
 
 	// Declare tools variable
 	private JPanel contentPane;
@@ -72,29 +72,12 @@ public class manageGroup extends JFrame {
 	}
 
 	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					manageGroup frame = new manageGroup();
-					frame.setVisible(true);
-					frame.setResizable(false);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
-
-	/**
 	 * Create the frame.
 	 * 
 	 * @param onlineUsers
 	 * @param groupName
 	 */
-	public manageGroup() {
+	public ManageGroup() {
 		try {
 			commonGroup = InetAddress.getByName("230.1.1.1");
 			commonSocket = new MulticastSocket(6789);
@@ -192,7 +175,7 @@ public class manageGroup extends JFrame {
 					message = "updateGroupName::" + groupName + "::" + groupInput;
 					sendMessage(message);
 				}
-				manageGroup.this.dispose();
+				ManageGroup.this.dispose();
 			}
 		});
 		btnConfirm.setBounds(170, 337, 97, 25);
@@ -201,7 +184,7 @@ public class manageGroup extends JFrame {
 		JButton btnCancel = new JButton("Cancel");
 		btnCancel.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				manageGroup.this.dispose();
+				ManageGroup.this.dispose();
 			}
 		});
 		btnCancel.setBounds(294, 337, 97, 25);
