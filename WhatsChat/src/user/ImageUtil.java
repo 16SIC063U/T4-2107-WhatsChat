@@ -4,13 +4,13 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
 public class ImageUtil {
+
 	public static String IMAGE_PATH = "users/username_";
 
 	// User folder that store other user images
@@ -44,7 +44,7 @@ public class ImageUtil {
 		return null;
 	}
 
-	public static byte[] shrinkImage(File imgFile) {
+	public static byte[] fileToByte(File imgFile) {
 		BufferedImage originalImage;
 		try {
 			originalImage = ImageIO.read(imgFile);
@@ -66,5 +66,28 @@ public class ImageUtil {
 			System.out.println("Error reducing image file size");
 			return null;
 		}
+	}
+
+	public static File byteToFile(File fileToWrite, byte[] fileByte) {
+		// Write reduced image to file
+		try (FileOutputStream fos = new FileOutputStream(fileToWrite)) {
+			fos.write(fileByte);
+			fos.close();
+			return fileToWrite;
+		} catch (IOException e) {
+			System.out.println("error reducing file size");
+			e.printStackTrace();
+			return null;
+
+		}
+	}
+
+	public static File reduceImageSize(File imgFile) {
+		byte[] fileByte = fileToByte(imgFile);
+		if (fileByte == null) {
+			return null;
+		}
+		return byteToFile(imgFile, fileByte);
+
 	}
 }

@@ -1,11 +1,9 @@
 package user;
 
-import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,11 +13,10 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
-import javax.swing.JPanel;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
 
-public class ProfilePicture extends JPanel {
+public class ProfilePicture {
 
 	private static final long serialVersionUID = 11L;
 	private String username;
@@ -27,6 +24,12 @@ public class ProfilePicture extends JPanel {
 
 	public ProfilePicture(String username) {
 		this.username = username;
+		// Try and get image from path
+		try {
+			image = ImageIO.read(new File(ImageUtil.getUserFolderPath(username) + username + ".jpg"));
+		} catch (IOException e) {
+			image = null;
+		}
 	}
 
 	/**
@@ -35,30 +38,21 @@ public class ProfilePicture extends JPanel {
 	 * @return
 	 */
 	public boolean selectProfilePic() {
+
 		// Choose file
 		String filePath = chooseFile();
+		if (filePath == null || filePath.isEmpty()) {
+			return false;
+		}
+
 		// Create file
 		File createdFile = copyFile(new File(filePath),
 				new File(ImageUtil.getUserFolderPath(username) + username + ".jpg"));
-	
-		//Resize image
-		byte[] reducedFileSize = ImageUtil.shrinkImage(createdFile);
-		
-		//Write reduced image to file
-		try (FileOutputStream fos = new FileOutputStream(createdFile)) {
-			   fos.write(reducedFileSize);
-			   fos.close();
-			} catch (IOException e) {
-				System.out.println("error reducing file size");
-				e.printStackTrace();
-			}
-		return createdFile != null;
-	}
 
-	@Override
-	protected void paintComponent(Graphics g) {
-		super.paintComponent(g);
-		g.drawImage(image, 0, 0, this); //
+		// Resize image
+		createdFile = ImageUtil.reduceImageSize(createdFile);
+
+		return createdFile != null;
 	}
 
 	public String getImagePath() {
@@ -72,11 +66,8 @@ public class ProfilePicture extends JPanel {
 		// if the directory does not exist, create it
 		File theDir = new File(ImageUtil.getUserFolderPath(username));
 		if (!theDir.exists()) {
-			boolean result = false;
-
 			try {
 				theDir.mkdirs();
-				result = true;
 			} catch (SecurityException se) {
 				// handle it
 			}
@@ -131,7 +122,17 @@ public class ProfilePicture extends JPanel {
 	}
 
 	public ImageIcon getImageIconProfilePic(JComponent lblProfilePic) {
-		Image dimg = image.getScaledInstance(lblProfilePic.getWidth(), lblProfilePic.getHeight(), Image.SCALE_SMOOTH);
+		Image dimg = null;
+		if (image == null) {
+			try {
+				image = ImageIO.read(new File("no_img.png"));
+				dimg = image.getScaledInstance(lblProfilePic.getWidth(), lblProfilePic.getHeight(), Image.SCALE_SMOOTH);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} else {
+			dimg = image.getScaledInstance(lblProfilePic.getWidth(), lblProfilePic.getHeight(), Image.SCALE_SMOOTH);
+		}
 
 		return new ImageIcon(dimg);
 	}

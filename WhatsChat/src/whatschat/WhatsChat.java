@@ -8,10 +8,13 @@ package whatschat;
 import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Image;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -22,9 +25,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.GroupLayout;
+import javax.swing.ImageIcon;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -38,8 +43,11 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import user.ImageUtil;
 import user.ListProfileDisplay;
 import user.ProfilePicture;
-import user.UserImageMap;
+import user.UserProfile;
 import user.manageGroup;
+import javax.swing.JButton;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 /**
  *
@@ -47,29 +55,72 @@ import user.manageGroup;
  */
 public class WhatsChat extends javax.swing.JFrame {
 
-	static volatile HashMap createdGroup = new HashMap();
+	// Variables declaration - do not modify//GEN-BEGIN:variables
+	private javax.swing.JButton btnUpdateProfile;
+	private javax.swing.JButton btnAddPicture;
+	private javax.swing.JButton btnCancel;
+	private javax.swing.JButton btnCreate;
+	private javax.swing.JButton btnDelete;
+	private javax.swing.JButton btnEdit;
+	private javax.swing.JButton btnLeave;
+	private javax.swing.JButton btnRegister;
+	private javax.swing.JButton btnSend;
+	private javax.swing.JLabel jLabel1;
+	private javax.swing.JLabel jLabel2;
+	private javax.swing.JLabel jLabel3;
+	private javax.swing.JLabel jLabel4;
+	private javax.swing.JLabel labelEditGroupError;
+	private javax.swing.JLabel labelGroupError;
+	private javax.swing.JLabel labelMessageError;
+	private javax.swing.JLabel labelRegisterError;
+	private javax.swing.JLabel lblProfilePic;
+	private javax.swing.JLabel lbProfileDescription;
+	private javax.swing.JPanel jPanel1;
+	private javax.swing.JPanel jPanel2;
+	private javax.swing.JPanel jPanel3;
+	private javax.swing.JPanel jPanel4;
+	private javax.swing.JPanel jPanel5;
+	private javax.swing.JPanel jPanel6;
+	private javax.swing.JPanel jPanel7;
+	private javax.swing.JPanel panelGroup;
+	private javax.swing.JPanel panelUser;
+	private javax.swing.JPanel panelUserCheckbox;
+	private javax.swing.JPanel groupPane;
+	private javax.swing.JScrollPane jScrollPane3;
+	private javax.swing.JScrollPane scrollPane;
+	private javax.swing.JScrollPane scrollUser;
+	private javax.swing.JScrollPane scrollGroup;
+	private javax.swing.JTextArea listConversation;
+	private javax.swing.JTextArea textAreaDescription;
+	private javax.swing.JTextArea listUser;
+	private javax.swing.JTextField textGroup;
+	private javax.swing.JTextField textMessage;
+	private javax.swing.JTextField textRegister;
+	private javax.swing.JTextField textSelectedGroup;
+	private ButtonGroup buttonGroup;
+
 	static final int portNo = 6789;
-	static volatile List<String> usernameList = new ArrayList();
-	static volatile Map<String, String> groupList = new HashMap();
+	static volatile List<String> usernameList = new ArrayList<String>();
+	static volatile Map<String, String> groupList = new HashMap<String, String>();
 	static volatile boolean messageFlag = false;
-	Map<String, String> joinedGroupList = new HashMap();
-	Map<String, String> joinedGroupChats = new HashMap();
-	Map<String, List<String>> joinedGroupMembers = new HashMap();
-	// static volatile boolean onHold = false;
-	MulticastSocket multicastSocket = null, commonSocket = null;
-	InetAddress multicastGroup = null, commonGroup = null;
+	Map<String, String> joinedGroupList = new HashMap<String, String>();
+	Map<String, String> joinedGroupChats = new HashMap<String, String>();
+	Map<String, List<String>> joinedGroupMembers = new HashMap<String, List<String>>();
+
+	MulticastSocket multicastSocket = null;
+	InetAddress multicastGroup = null;
+	MulticastSocket commonSocket = null;
+	InetAddress commonGroup = null;
 	public static String username = "";
 	String activeGroup = "";
 	Thread commonThread = null;
 
 	// To store a mapping of username and its matching profile pic
-	List<UserImageMap> userImageMapList = new ArrayList<>();
+	List<UserProfile> userImageMapList = new ArrayList<>();
 
 	// Added this for listview. putthis in a JScrollPane by calling new
 	// JScrollPane(lvd.getJList());
-	ListProfileDisplay lvd = new ListProfileDisplay();
-	private JLabel lblProfilePic;
-	private JScrollPane scrollPane;
+	ListProfileDisplay lvd = new ListProfileDisplay(this);
 
 	/**
 	 * Creates new form WhatsChat
@@ -80,6 +131,7 @@ public class WhatsChat extends javax.swing.JFrame {
 		try {
 			commonGroup = InetAddress.getByName("230.1.1.1");
 			commonSocket = new MulticastSocket(portNo);
+			commonSocket.setReceiveBufferSize(65507);
 			commonSocket.joinGroup(commonGroup);
 			commonThread = new Thread(new Runnable() {
 				@Override
@@ -116,25 +168,29 @@ public class WhatsChat extends javax.swing.JFrame {
 							}
 
 							else if (action.equals("getUserImage") && !(userImageMapList.isEmpty())) {
-								for (UserImageMap userImageMap : userImageMapList) {
+								for (UserProfile userImageMap : userImageMapList) {
 									String sendUserImageMessage = "sendUserImage::" + userImageMap.getByteMessage();
 									commonSocket.send(generateMessage(sendUserImageMessage, commonGroup));
 								}
 							}
 
 							else if (action.equals("sendUserImage")) {
-								UserImageMap map = new UserImageMap(parameter.getBytes());
-
+								UserProfile map = new UserProfile(parameter.getBytes());
 								boolean isInList = false;
-								for (UserImageMap userImageMap : userImageMapList) {
+								for (UserProfile userImageMap : userImageMapList) {
 									if (userImageMap.getUsername().equals(map.getUsername())) {
+										userImageMap.setUserImagePath(map.getUserImagePath());
+										userImageMap.setTextDescription(map.getTextDescription());
 										isInList = true;
 									}
 								}
 								// Add if not in list
 								if (!isInList) {
 									userImageMapList.add(map);
+									// Update list
 								}
+
+								lvd.refresh();
 							}
 
 							else if (action.equals("getGroup") && !(groupList.isEmpty())) {
@@ -155,6 +211,9 @@ public class WhatsChat extends javax.swing.JFrame {
 							else if (action.equals("removeGroup")) {
 								// TODO remove group done by edwin
 								if (groupList.containsKey(parameter)) {
+									if (parameter.equals(activeGroup)) {
+										activeGroup = "";
+									}
 									groupList.remove(parameter);
 									String ipAddr = joinedGroupList.get(parameter);
 									joinedGroupList.remove(parameter);
@@ -303,7 +362,7 @@ public class WhatsChat extends javax.swing.JFrame {
 	// <editor-fold defaultstate="collapsed" desc="Generated
 	// Code">//GEN-BEGIN:initComponents
 	private void initComponents() {
-
+		lblProfilePic = new JLabel("");
 		btnRegister = new javax.swing.JButton();
 		textRegister = new javax.swing.JTextField();
 		jPanel1 = new javax.swing.JPanel();
@@ -335,32 +394,32 @@ public class WhatsChat extends javax.swing.JFrame {
 		jPanel6 = new javax.swing.JPanel();
 		jPanel7 = new javax.swing.JPanel();
 		btnAddPicture = new javax.swing.JButton();
-		btnAddPicture.setVisible(false);
-		
+		btnAddPicture.setEnabled(false);
+
 		textRegister.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
-				if (e.getKeyCode()==KeyEvent.VK_ENTER){
-		            registerName();
-		        }
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					registerName();
+				}
 			}
 		});
-		
+
 		textGroup.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
-				if (e.getKeyCode()==KeyEvent.VK_ENTER){
-		            createGroup();
-		        }
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					createGroup();
+				}
 			}
 		});
-		
+
 		textMessage.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
-				if (e.getKeyCode()==KeyEvent.VK_ENTER){
-		            sendChatMessage();
-		        }
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					sendChatMessage();
+				}
 			}
 		});
 
@@ -606,26 +665,52 @@ public class WhatsChat extends javax.swing.JFrame {
 				javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION,
 				new java.awt.Font("Tahoma", 1, 13))); // NOI18N
 
-		btnAddPicture.setText("Add Pic");
+		btnAddPicture.setText("Select Profile Pic");
 		btnAddPicture.addMouseListener(new java.awt.event.MouseAdapter() {
 			public void mouseClicked(java.awt.event.MouseEvent evt) {
 				btnAddPictureMouseClicked(evt);
 			}
 		});
 
-		lblProfilePic = new JLabel("");
+		textAreaDescription = new JTextArea();
+		textAreaDescription.setEnabled(false);
+
+		btnUpdateProfile = new JButton("Update Profile");
+		btnUpdateProfile.setEnabled(false);
+		btnUpdateProfile.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				sendUserProfile();
+			}
+		});
+
+		lbProfileDescription = new JLabel("Profile Description");
 
 		javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
-		jPanel7Layout.setHorizontalGroup(jPanel7Layout.createParallelGroup(Alignment.TRAILING)
-				.addGroup(Alignment.LEADING, jPanel7Layout.createSequentialGroup().addContainerGap()
-						.addGroup(jPanel7Layout.createParallelGroup(Alignment.LEADING).addComponent(btnAddPicture)
-								.addComponent(lblProfilePic, GroupLayout.DEFAULT_SIZE, 214, Short.MAX_VALUE))
-						.addContainerGap()));
-		jPanel7Layout.setVerticalGroup(jPanel7Layout.createParallelGroup(Alignment.TRAILING).addGroup(Alignment.LEADING,
-				jPanel7Layout.createSequentialGroup().addContainerGap()
-						.addComponent(lblProfilePic, GroupLayout.PREFERRED_SIZE, 216, GroupLayout.PREFERRED_SIZE)
-						.addPreferredGap(ComponentPlacement.RELATED).addComponent(btnAddPicture)
-						.addContainerGap(72, Short.MAX_VALUE)));
+		jPanel7Layout.setHorizontalGroup(jPanel7Layout.createParallelGroup(Alignment.TRAILING).addGroup(jPanel7Layout
+				.createSequentialGroup()
+				.addGroup(jPanel7Layout.createParallelGroup(Alignment.LEADING)
+						.addGroup(Alignment.TRAILING,
+								jPanel7Layout.createSequentialGroup().addContainerGap().addComponent(
+										textAreaDescription, GroupLayout.DEFAULT_SIZE, 233, Short.MAX_VALUE))
+						.addGroup(Alignment.TRAILING,
+								jPanel7Layout.createSequentialGroup().addContainerGap().addComponent(btnUpdateProfile,
+										GroupLayout.DEFAULT_SIZE, 233, Short.MAX_VALUE))
+						.addGroup(jPanel7Layout.createSequentialGroup().addContainerGap()
+								.addComponent(lbProfileDescription))
+						.addGroup(jPanel7Layout.createSequentialGroup().addContainerGap()
+								.addGroup(jPanel7Layout.createParallelGroup(Alignment.LEADING)
+										.addComponent(btnAddPicture, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 233,
+												Short.MAX_VALUE)
+										.addComponent(lblProfilePic, GroupLayout.DEFAULT_SIZE, 233, Short.MAX_VALUE))))
+				.addContainerGap()));
+		jPanel7Layout.setVerticalGroup(jPanel7Layout.createParallelGroup(Alignment.LEADING)
+				.addGroup(jPanel7Layout.createSequentialGroup().addComponent(btnAddPicture)
+						.addPreferredGap(ComponentPlacement.RELATED)
+						.addComponent(lblProfilePic, GroupLayout.PREFERRED_SIZE, 218, GroupLayout.PREFERRED_SIZE)
+						.addPreferredGap(ComponentPlacement.RELATED).addComponent(lbProfileDescription)
+						.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(textAreaDescription, GroupLayout.PREFERRED_SIZE, 55, GroupLayout.PREFERRED_SIZE)
+						.addPreferredGap(ComponentPlacement.RELATED).addComponent(btnUpdateProfile).addContainerGap()));
 		jPanel7.setLayout(jPanel7Layout);
 
 		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -642,7 +727,7 @@ public class WhatsChat extends javax.swing.JFrame {
 										.addComponent(jPanel3, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
 												GroupLayout.PREFERRED_SIZE)
 										.addPreferredGap(ComponentPlacement.RELATED)
-										.addComponent(jPanel4, GroupLayout.DEFAULT_SIZE, 455, Short.MAX_VALUE))
+										.addComponent(jPanel4, GroupLayout.DEFAULT_SIZE, 474, Short.MAX_VALUE))
 								.addGroup(layout.createSequentialGroup().addGroup(layout
 										.createParallelGroup(Alignment.LEADING, false)
 										.addGroup(layout.createSequentialGroup()
@@ -663,37 +748,55 @@ public class WhatsChat extends javax.swing.JFrame {
 										.addPreferredGap(ComponentPlacement.RELATED).addComponent(jPanel7,
 												GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
 						.addContainerGap()));
-		layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING).addGroup(layout.createSequentialGroup()
-				.addGap(10)
-				.addGroup(layout.createParallelGroup(Alignment.LEADING, false)
-						.addComponent(jPanel7, 0, 0, Short.MAX_VALUE).addComponent(jPanel6, 0, 0, Short.MAX_VALUE)
-						.addGroup(layout.createSequentialGroup()
-								.addGroup(layout.createParallelGroup(Alignment.BASELINE)
-										.addComponent(labelRegisterError).addComponent(jLabel1))
-								.addPreferredGap(ComponentPlacement.RELATED)
-								.addGroup(layout.createParallelGroup(Alignment.BASELINE)
-										.addComponent(textRegister, GroupLayout.PREFERRED_SIZE,
-												GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-										.addComponent(btnRegister))
-								.addPreferredGap(ComponentPlacement.RELATED).addComponent(jLabel2)
-								.addPreferredGap(ComponentPlacement.UNRELATED)
-								.addComponent(jPanel1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-										GroupLayout.PREFERRED_SIZE)))
-				.addGap(48)
-				.addGroup(layout.createParallelGroup(Alignment.LEADING, false)
-						.addComponent(jPanel4, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-						.addComponent(jPanel3, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-						.addComponent(jPanel2, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-				.addPreferredGap(ComponentPlacement.RELATED)
-				.addGroup(layout.createParallelGroup(Alignment.BASELINE).addComponent(btnSend).addComponent(textMessage,
-						GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addPreferredGap(ComponentPlacement.RELATED)
-				.addComponent(labelMessageError, GroupLayout.PREFERRED_SIZE, 16, GroupLayout.PREFERRED_SIZE)
-				.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
+		layout.setVerticalGroup(layout.createParallelGroup(Alignment.LEADING)
+				.addGroup(layout.createSequentialGroup().addGap(10)
+						.addGroup(layout.createParallelGroup(Alignment.LEADING, false)
+								.addGroup(layout.createSequentialGroup()
+										.addGroup(layout.createParallelGroup(Alignment.BASELINE)
+												.addComponent(labelRegisterError).addComponent(jLabel1))
+										.addPreferredGap(ComponentPlacement.RELATED)
+										.addGroup(layout.createParallelGroup(Alignment.BASELINE)
+												.addComponent(textRegister, GroupLayout.PREFERRED_SIZE,
+														GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+												.addComponent(btnRegister))
+										.addPreferredGap(ComponentPlacement.RELATED).addComponent(jLabel2)
+										.addPreferredGap(ComponentPlacement.UNRELATED)
+										.addComponent(jPanel1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+												GroupLayout.PREFERRED_SIZE))
+								.addComponent(jPanel7, GroupLayout.DEFAULT_SIZE, 391, Short.MAX_VALUE).addComponent(
+										jPanel6, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+						.addPreferredGap(ComponentPlacement.RELATED)
+						.addGroup(layout.createParallelGroup(Alignment.LEADING, false)
+								.addComponent(jPanel4, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
+										Short.MAX_VALUE)
+								.addComponent(jPanel3, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
+										Short.MAX_VALUE)
+								.addComponent(jPanel2, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
+										Short.MAX_VALUE))
+						.addPreferredGap(ComponentPlacement.RELATED)
+						.addGroup(layout.createParallelGroup(Alignment.BASELINE).addComponent(btnSend).addComponent(
+								textMessage, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+								GroupLayout.PREFERRED_SIZE))
+						.addPreferredGap(ComponentPlacement.RELATED)
+						.addComponent(labelMessageError, GroupLayout.PREFERRED_SIZE, 16, GroupLayout.PREFERRED_SIZE)
+						.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
 		getContentPane().setLayout(layout);
 
 		pack();
 	}// </editor-fold>//GEN-END:initComponents
+
+	protected void sendUserProfile() {
+		try {
+			UserProfile map = new UserProfile(username, ImageUtil.getUserFolderPath(username) + username + ".jpg",
+					textAreaDescription.getText());
+			String sendUserMessage = "sendUserImage::" + map.getByteMessage();
+			commonSocket.send(generateMessage(sendUserMessage, commonGroup));
+
+		} catch (IOException e) {
+			System.out.println("ERROR SENDING user image");
+			e.printStackTrace();
+		}
+	}
 
 	private void btnLeaveMouseClicked(java.awt.event.MouseEvent evt) {// GEN-FIRST:event_btnLeaveMouseClicked
 		// TODO add your handling code here:
@@ -724,17 +827,6 @@ public class WhatsChat extends javax.swing.JFrame {
 		if (pp.selectProfilePic()) {
 			// Set profile on label
 			lblProfilePic.setIcon(pp.getImageIconProfilePic(lblProfilePic));
-			UserImageMap userImageMap = new UserImageMap(username, pp.getProfilePic());
-			// Update other user of profile pic
-			try {
-				String sendUserMessage = "sendUserImage::" + userImageMap.getByteMessage();
-				commonSocket.send(generateMessage(sendUserMessage, commonGroup));
-				// Update list
-				lvd.refresh();
-			} catch (IOException e) {
-				System.out.println("ERROR SENDING user image");
-				e.printStackTrace();
-			}
 		}
 	}// GEN-LAST:event_btnAddPictureMouseClicked
 
@@ -772,6 +864,33 @@ public class WhatsChat extends javax.swing.JFrame {
 
 		btnCancel.setVisible(false);
 		btnCancel.setEnabled(false);
+
+		textRegister.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					registerName();
+				}
+			}
+		});
+
+		textGroup.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					createGroup();
+				}
+			}
+		});
+
+		textMessage.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					sendChatMessage();
+				}
+			}
+		});
 
 	}
 
@@ -910,8 +1029,8 @@ public class WhatsChat extends javax.swing.JFrame {
 			labelMessageError.setText(" Cannot send empty message !");
 		}
 	}
-	
-	public void createGroup(){
+
+	public void createGroup() {
 		if (!(panelUser.getComponent(0).isVisible())) {
 			JCheckBox userCB;
 			panelUserCheckbox.removeAll();
@@ -980,10 +1099,22 @@ public class WhatsChat extends javax.swing.JFrame {
 					username = usernameInput;
 					String sendUserMessage = "sendUser::" + username;
 					commonSocket.send(generateMessage(sendUserMessage, commonGroup));
-					btnAddPicture.setVisible(true);
+
+					File file = new File("no_img.png");
+					BufferedImage image;
+					image = ImageIO.read(file);
+					Image dimg = image.getScaledInstance(lblProfilePic.getWidth(), lblProfilePic.getHeight(),
+							Image.SCALE_SMOOTH);
+					lblProfilePic.setIcon(new ImageIcon(dimg));
+
 				} catch (IOException ex) {
 					ex.printStackTrace();
 				}
+				btnAddPicture.setEnabled(true);
+				textAreaDescription.setEnabled(true);
+				btnUpdateProfile.setEnabled(true);
+				btnAddPicture.setVisible(true);
+				btnAddPicture.setVisible(true);
 				btnRegister.setEnabled(false);
 				textRegister.setEnabled(false);
 			} else {
@@ -1083,23 +1214,16 @@ public class WhatsChat extends javax.swing.JFrame {
 
 			multicastGroup = InetAddress.getByName(ipStr);
 			multicastSocket = new MulticastSocket(portNo);
+			multicastSocket.setReceiveBufferSize(65507);
 			multicastSocket.joinGroup(multicastGroup);
 			// Create a new thread to keep listening for packets from the group
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
 					// System.out.println("Start run");
-					byte buf1[] = new byte[1000];
+					byte buf1[] = new byte[65507];
 					DatagramPacket dgpReceived = new DatagramPacket(buf1, buf1.length);
 					while (true) {
-
-						// try {
-						// lock.lock();
-						// } catch (InterruptedException e) {
-						// e.printStackTrace();
-						// }
-						//
-						// System.out.println("Current thread: " + Thread.currentThread().getId());
 						try {
 							multicastSocket.receive(dgpReceived);
 							byte[] receivedData = dgpReceived.getData();
@@ -1112,9 +1236,10 @@ public class WhatsChat extends javax.swing.JFrame {
 							}
 							if (msg.equals("removeGroup")) {
 								// Stop current thread
-								System.out.println("Stop thread: " + Thread.currentThread().getId());
+								// System.out.println("Stop thread: " + Thread.currentThread().getId());
 								Thread.currentThread().interrupt();
-								System.out.println("Thread after stopping: " + Thread.currentThread().getId());
+								// System.out.println("Thread after stopping: " +
+								// Thread.currentThread().getId());
 							} else if (subString.equals("leaveGroup")) {
 								String[] msgArray = msg.split("::");
 								List<String> members = joinedGroupMembers.get(msgArray[1]);
@@ -1164,43 +1289,29 @@ public class WhatsChat extends javax.swing.JFrame {
 		}
 	}
 
-	// Variables declaration - do not modify//GEN-BEGIN:variables
-	private javax.swing.JButton btnAddPicture;
-	private javax.swing.JButton btnCancel;
-	private javax.swing.JButton btnCreate;
-	private javax.swing.JButton btnDelete;
-	private javax.swing.JButton btnEdit;
-	private javax.swing.JButton btnLeave;
-	private javax.swing.JButton btnRegister;
-	private javax.swing.JButton btnSend;
-	private javax.swing.JLabel jLabel1;
-	private javax.swing.JLabel jLabel2;
-	private javax.swing.JLabel jLabel3;
-	private javax.swing.JLabel jLabel4;
-	private javax.swing.JPanel jPanel1;
-	private javax.swing.JPanel jPanel2;
-	private javax.swing.JPanel jPanel3;
-	private javax.swing.JPanel jPanel4;
-	private javax.swing.JPanel jPanel5;
-	private javax.swing.JPanel jPanel6;
-	private javax.swing.JPanel jPanel7;
-	private javax.swing.JScrollPane jScrollPane3;
-	private javax.swing.JLabel labelEditGroupError;
-	private javax.swing.JLabel labelGroupError;
-	private javax.swing.JLabel labelMessageError;
-	private javax.swing.JLabel labelRegisterError;
-	private javax.swing.JTextArea listConversation;
-	private javax.swing.JPanel panelGroup;
-	private javax.swing.JPanel panelUser;
-	private javax.swing.JTextField textGroup;
-	private javax.swing.JTextField textMessage;
-	private javax.swing.JTextField textRegister;
-	private javax.swing.JTextField textSelectedGroup;
-	// End of variables declaration//GEN-END:variables
-	private JTextArea listUser;
-	private JScrollPane scrollUser;
-	private JPanel panelUserCheckbox;
-	private ButtonGroup buttonGroup;
-	private JScrollPane scrollGroup;
-	private JPanel groupPane;
+	public void showUserProfile(String usernameClicked) {
+
+		ProfilePicture pp = new ProfilePicture(usernameClicked);
+		lblProfilePic.setIcon(pp.getImageIconProfilePic(lblProfilePic));
+
+		if (usernameClicked.equals(username)) {
+			// Allow edit
+			textAreaDescription.setEnabled(true);
+			btnAddPicture.setEnabled(true);
+			btnUpdateProfile.setEnabled(true);
+		} else {
+			// Disallow editing
+			textAreaDescription.setEnabled(false);
+			btnAddPicture.setEnabled(false);
+			btnUpdateProfile.setEnabled(false);
+		}
+
+		textAreaDescription.setText("");
+		for (UserProfile profile : userImageMapList) {
+			if (profile.getUsername().equals(usernameClicked)) {
+				textAreaDescription.setText(profile.getTextDescription());
+			}
+		}
+
+	}
 }
